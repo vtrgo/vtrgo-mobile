@@ -287,8 +287,8 @@ const App = () => {
 
                 {[
                   { label: 'Last 10 Minutes', value: '-10m' },
-                  { label: 'Last 1 Hours', value: '-1h' },
-                  { label: 'Last 1 Day', value: '-1d' },
+                  { label: 'Last 3 Hours', value: '-3h' },
+                  { label: 'Last 12 hours', value: '-12h' },
                 ].map(({ label, value }) => (
                   <TouchableOpacity
                     key={value}
