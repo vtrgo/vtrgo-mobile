@@ -39,6 +39,7 @@ const App = () => {
   const [graphTitle, setGraphTitle] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [currentFieldName, setCurrentFieldName] = useState(null);
+  const [selectedRange, setSelectedRange] = useState(null);
   const [historicalData, setHistoricalData] = useState({
   boolean_percentages: {},
   fault_counts: {},
@@ -185,25 +186,25 @@ const App = () => {
         </View>
       <ScrollView contentContainerStyle={styles.container}>
           {/* Float Data Tab */}
+          <Text style={styles.header}>Float Data</Text>
+          <TouchableOpacity style={styles.floatScanButton} onPress={scanFloatTab}>
+              <Text style={styles.scanButtonText}>🔄 Scan Float Data</Text>
+          </TouchableOpacity>
           {selectedMode === 'float' && (
+            
             <View style={styles.card}>
-              <Text style={styles.header}>Float Data</Text>
-              <TouchableOpacity style={styles.scanButton} onPress={scanFloatTab}>
-                <Text style={styles.scanButtonText}>🔄 Scan Float Data</Text>
-              </TouchableOpacity>
               {graphTitle !== '' && (
                 <Text style={styles.header}>
                   {graphTitle.replace(/\./g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </Text>
               )}
 
-              <View style={{ height: 300 }}>
+              <View style={{ height: 300}}>
                 <CartesianChart
-                  style={{ marginBottom: 400 }}  // ⬅️ adds space below the chart for labels
                   data={formattedFloatData}
                   xKey="timestamp"
                   yKeys={["value"]}
-                  domainPadding={{bottom:50}}
+                  domainPadding={{bottom:50, right: 15}}
                   xAxis={{
                   font,
                   labelRotate: -45,
@@ -228,11 +229,14 @@ const App = () => {
               </View>
               <Text style={styles.header}>Data Points</Text>
               {floatData.length > 0 ? (
-                floatData.map((item, index) => (
+              <View>
+                {floatData.map((item, index) => (
                   <Text key={index} style={styles.item}>
                     • {new Date(item.time).toLocaleTimeString()}: <Text style={styles.bold}>{item.value.toFixed(2)}</Text>
                   </Text>
-                ))
+                ))}
+              </View>
+
               ) : (
                 <Text style={styles.noDataText}>No float data. Tap "Scan Float Data".</Text>
               )}
@@ -245,7 +249,7 @@ const App = () => {
                 <Text style={styles.modalTitle}>Select Time Range</Text>
 
                 {[
-                  { label: 'Last 10 Minutes', value: '-10m' },
+                  { label: 'Last 60 Minutes', value: '-60m' },
                   { label: 'Last 3 Hours', value: '-3h' },
                   { label: 'Last 12 hours', value: '-12h' },
                 ].map(({ label, value }) => (
@@ -318,7 +322,7 @@ export default App;
 
 
 const styles = StyleSheet.create({
-  container: { padding: 20, marginTop: 0, marginBottom: 50, paddingBottom: 100 },
+  container: { padding: 20, marginTop: 0, marginBottom: 50, paddingBottom: 100, },
   selectionContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   selectionBox: { flex: 1, marginHorizontal: 5, padding: 20, borderRadius: 12, backgroundColor: '#ffffffcc', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   selectionBoxActive: { backgroundColor: '#2280b0' },
@@ -327,15 +331,15 @@ const styles = StyleSheet.create({
   rangeContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   rangeBox: { flex: 1, marginHorizontal: 5, paddingVertical: 10, borderRadius: 8, backgroundColor: '#ffffffcc', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   rangeBoxActive: { backgroundColor: '#2280b0' },
-  rangeText: { fontSize: 14, fontWeight: '500', color: '#2280b0' },
+  rangeText: { fontSize: 14, fontWeight: '500', color: '#000000ff' },
   rangeTextActive: { color: '#fff' },
   scanButton: { backgroundColor: '#007bff', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
   scanButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  card: { backgroundColor: '#ffffffcc', borderRadius: 16, padding: 28, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 6, elevation: 2 },
+  floatScanButton: {backgroundColor: '#24eb45ff', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
+  card: { backgroundColor: '#ffffffcc', borderRadius: 16, padding: 28, marginBottom: 16,  borderWidth: 15, borderColor: '#f5f5f5ff'},
   header: { fontSize: 18, fontWeight: 'bold', marginTop: 20 },
   item: { fontSize: 16, marginVertical: 3 },
   bold: { fontWeight: 'bold' },
-  chartsSection: { marginTop: 20 },
   sectionHeader: { fontSize: 22, fontWeight: 'bold', marginTop: 20, marginBottom: 10, textAlign: 'center', color: '#2280b0' },
   noDataText: { fontSize: 14, color: '#999', fontStyle: 'italic', textAlign: 'center', padding: 20 },
   itemRow: {marginBottom: 8, paddingVertical: 6, paddingHorizontal: 4, borderBottomWidth: 0.5, borderColor: '#ccc',},
@@ -347,7 +351,6 @@ const styles = StyleSheet.create({
   modalContent: {width: '80%', backgroundColor: 'white', padding: 20, borderRadius: 12, alignItems: 'center',},
   modalTitle: {fontSize: 18, fontWeight: 'bold', marginBottom: 16,},
   rangeButton: {padding: 12, backgroundColor: '#E0E0E0', borderRadius: 6, marginVertical: 6, width: '100%', alignItems: 'center',},
-  rangeText: {fontSize: 16,},
   cancelButton: {marginTop: 10,},
   cancelText: {color: 'red', fontSize: 16,},
 });
