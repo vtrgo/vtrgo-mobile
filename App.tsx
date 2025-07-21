@@ -126,7 +126,7 @@ const App = () => {
 
         const startTime = new Date(parsedData.start).getTime(); // in ms
         const intervalMs = parsedData.interval * 1000;
-        const timezoneOffsetMs = new Date().getTimezoneOffset() * -60000;
+        const timezoneOffsetMs = new Date().getTimezoneOffset() * 20000*0;
         const expanded = parsedData.values.map((value, i) => ({
           time: new Date(startTime + i * intervalMs + timezoneOffsetMs).toISOString(),
           value: value,
@@ -191,11 +191,8 @@ const App = () => {
       resizeMode="contain"
       imageStyle={{ opacity: 0.2 }}
     >
-      <ScrollView contentContainerStyle={styles.container}>
-                {/* Selection Boxes */}
-
-        {/* Mode Selection */}
-        <View style={styles.selectionContainer}>
+        {/* Sticky Header */}
+        <View style={[styles.selectionContainer, { backgroundColor: '#fff', paddingTop: 40, zIndex: 10 }]}>
           {['live','float','historical'].map(mode => (
             <TouchableOpacity
               key={mode}
@@ -208,6 +205,7 @@ const App = () => {
             </TouchableOpacity>
           ))}
         </View>
+      <ScrollView contentContainerStyle={styles.container}>
           {/* Float Data Tab */}
           {selectedMode === 'float' && (
             <View style={styles.card}>
@@ -405,7 +403,7 @@ export default App;
 
 
 const styles = StyleSheet.create({
-  container: { padding: 20, marginTop: 40, marginBottom: 50, paddingBottom: 100 },
+  container: { padding: 20, marginTop: 0, marginBottom: 50, paddingBottom: 100 },
   selectionContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   selectionBox: { flex: 1, marginHorizontal: 5, padding: 20, borderRadius: 12, backgroundColor: '#ffffffcc', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
   selectionBoxActive: { backgroundColor: '#2280b0' },
