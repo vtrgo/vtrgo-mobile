@@ -1,21 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ImageBackground, Modal, Button, FlatList, Dimensions, StatusBar, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ImageBackground, Modal } from 'react-native';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
-import { BarChart } from 'react-native-chart-kit';
 import { CartesianChart, Line } from 'victory-native';
 import { useFont } from "@shopify/react-native-skia";
-
-const DATA = Array.from({ length: 31 }, (_, i) => ({
-  day: i,
-  highTmp: 40 + 30 * Math.random(),
-}));
-
-
-
-const rng = (range: number): number => {
-  return Math.floor(Math.random()*range);
-};
-
 
 
 
@@ -47,15 +34,10 @@ function printStructuredJson(data: Record<string, any>) {
 const App = () => {
   const [selectedMode, setSelectedMode] = useState('live');
   const [timeRange, setTimeRange] = useState('-30m');
-  const [statusBits0, setStatusBits0] = useState([]);
-  const [statusBits1, setStatusBits1] = useState([]);
-  const [words, setWords] = useState([]);
-  const [currentLaneValues, setCurrentLaneValues] = useState(Array(8).fill(0));
   const [floatData, setFloatData] = useState([]); // ✅ NOT null or {}
   const [formattedFloatData, setFormattedFloatData] = useState([]);
   const [graphTitle, setGraphTitle] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedRange, setSelectedRange] = useState(null);
   const [currentFieldName, setCurrentFieldName] = useState(null);
   const [historicalData, setHistoricalData] = useState({
   boolean_percentages: {},
@@ -126,9 +108,8 @@ const App = () => {
 
         const startTime = new Date(parsedData.start).getTime(); // in ms
         const intervalMs = parsedData.interval * 1000;
-        const timezoneOffsetMs = new Date().getTimezoneOffset() * 20000*0;
         const expanded = parsedData.values.map((value, i) => ({
-          time: new Date(startTime + i * intervalMs + timezoneOffsetMs).toISOString(),
+          time: new Date(startTime + i * intervalMs).toISOString(),
           value: value,
         }));
 
@@ -181,9 +162,6 @@ const App = () => {
     }
   };
 
-
-
-
   return (
     <ImageBackground
       source={require('./assets/vtrfeedersolutionsinc_logo.jpg')}
@@ -193,7 +171,7 @@ const App = () => {
     >
         {/* Sticky Header */}
         <View style={[styles.selectionContainer, { backgroundColor: '#fff', paddingTop: 40, zIndex: 10 }]}>
-          {['live','float','historical'].map(mode => (
+          {['live','float'].map(mode => (
             <TouchableOpacity
               key={mode}
               style={[styles.selectionBox, selectedMode === mode && styles.selectionBoxActive]}
@@ -261,23 +239,6 @@ const App = () => {
             </View>
           )}
 
-        {/* Date Range Selector for Historical Mode */}
-        {selectedMode === 'historical' && (
-          <View style={styles.rangeContainer}>
-            {['30min','hour','day'].map(range => (
-              <TouchableOpacity
-                key={range}
-                style={[styles.rangeBox, timeRange === range && styles.rangeBoxActive]}
-                onPress={() => setTimeRange(range)}
-              >
-                <Text style={[styles.rangeText, timeRange === range && styles.rangeTextActive]}>{
-                  range === '30min' ? '30 min' : range === 'hour' ? '1 hour' : '1 day'
-                }</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
         <Modal visible={modalVisible} transparent animationType="slide">
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
@@ -344,52 +305,6 @@ const App = () => {
               ))}
             </>
           )}
-
-
-
-        {/* Historical Data Mode */}
-        {selectedMode === 'historical' && (
-          <>
-            <View style={styles.card}>
-              <Text style={styles.header}>Historical Trends</Text>
-              <Text style={styles.item}>• Viewing: <Text style={styles.bold}>{{
-                '30min': 'Last 30 minutes',
-                'hour': 'Last 1 hour',
-                'day': 'Last 24 hours',
-              }[timeRange]}</Text></Text>
-              <View style={{ height: 300 }}>
-                <CartesianChart data={DATA} xKey="day" yKeys={["highTmp"]}>
-                  {({ points }) => (
-                    <Line points={points.highTmp} color="red" strokeWidth={3} />
-                  )}
-                </CartesianChart>
-              </View>
-            </View>
-              {historicalData && (
-                <>
-                  <View style={styles.card}>
-                    <Text style={styles.header}>Boolean Percentages</Text>
-                    {Object.entries(historicalData.boolean_percentages).map(([key, val]) => (
-                      <Text key={key} style={styles.item}>• {key}: <Text style={styles.bold}>{val}%</Text></Text>
-                    ))}
-                  </View>
-                  <View style={styles.card}>
-                    <Text style={styles.header}>Fault Counts</Text>
-                    {Object.entries(historicalData.fault_counts).map(([key, val]) => (
-                      <Text key={key} style={styles.item}>• {key}: <Text style={styles.bold}>{val}</Text></Text>
-                    ))}
-                  </View>
-                  <View style={styles.card}>
-                    <Text style={styles.header}>Float Averages</Text>
-                    {Object.entries(historicalData.float_averages).map(([key, val]) => (
-                      <Text key={key} style={styles.item}>• {key}: <Text style={styles.bold}>{val.toFixed(2)}</Text></Text>
-                    ))}
-                  </View>
-                </>
-              )}
-
-          </>
-        )}
         
 
       </ScrollView>
@@ -422,82 +337,17 @@ const styles = StyleSheet.create({
   bold: { fontWeight: 'bold' },
   chartsSection: { marginTop: 20 },
   sectionHeader: { fontSize: 22, fontWeight: 'bold', marginTop: 20, marginBottom: 10, textAlign: 'center', color: '#2280b0' },
-  chartContainer: { alignItems: 'center' },
-  chartTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#2280b0' },
-  chart: { marginVertical: 8, borderRadius: 16 },
-  valuesSummary: { marginTop: 15, alignItems: 'center' },
-  summaryTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 10, color: '#2280b0' },
-  valuesGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
-  valueItem: { alignItems: 'center', margin: 8, backgroundColor: '#f8f9fa', padding: 8, borderRadius: 8, minWidth: 60 },
-  valueLane: { fontSize: 12, color: '#666', fontWeight: '500' },
-  valueNumber: { fontSize: 14, fontWeight: 'bold', color: '#2280b0' },
   noDataText: { fontSize: 14, color: '#999', fontStyle: 'italic', textAlign: 'center', padding: 20 },
-  itemRow: {
-  marginBottom: 8,
-  paddingVertical: 6,
-  paddingHorizontal: 4,
-  borderBottomWidth: 0.5,
-  borderColor: '#ccc',
-},
-
-nfcButton: {
-  marginTop: 4,
-  backgroundColor: '#007AFF',
-  paddingVertical: 6,
-  paddingHorizontal: 12,
-  borderRadius: 8,
-  alignSelf: 'flex-start',
-},
-
-nfcButtonText: {
-  color: '#fff',
-  fontSize: 14,
-  fontWeight: '600',
-},
-button: {
-    padding: 12,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    marginVertical: 10,
-  },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  rangeButton: {
-    padding: 12,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 6,
-    marginVertical: 6,
-    width: '100%',
-    alignItems: 'center',
-  },
-  rangeText: {
-    fontSize: 16,
-  },
-  cancelButton: {
-    marginTop: 10,
-  },
-  cancelText: {
-    color: 'red',
-    fontSize: 16,
-  },
+  itemRow: {marginBottom: 8, paddingVertical: 6, paddingHorizontal: 4, borderBottomWidth: 0.5, borderColor: '#ccc',},
+  nfcButton: {marginTop: 4, backgroundColor: '#007AFF', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8, alignSelf: 'flex-start',},
+  nfcButtonText: {color: '#fff',fontSize: 14,fontWeight: '600',},
+  button: {padding: 12,backgroundColor: '#007AFF', borderRadius: 8, marginVertical: 10,},
+  buttonText: {color: 'white', textAlign: 'center',},
+  modalOverlay: {flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center',},
+  modalContent: {width: '80%', backgroundColor: 'white', padding: 20, borderRadius: 12, alignItems: 'center',},
+  modalTitle: {fontSize: 18, fontWeight: 'bold', marginBottom: 16,},
+  rangeButton: {padding: 12, backgroundColor: '#E0E0E0', borderRadius: 6, marginVertical: 6, width: '100%', alignItems: 'center',},
+  rangeText: {fontSize: 16,},
+  cancelButton: {marginTop: 10,},
+  cancelText: {color: 'red', fontSize: 16,},
 });
