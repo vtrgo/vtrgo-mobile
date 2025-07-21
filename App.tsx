@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ImageBackground, Modal } from 'react-native';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
-import { CartesianChart, Line } from 'victory-native';
-import { useFont } from "@shopify/react-native-skia";
+import { CartesianChart, Line, useChartPressState } from 'victory-native';
+import { Circle, useFont, Text as SKText } from "@shopify/react-native-skia";
+import {useDerivedValue, type SharedValue} from "react-native-reanimated"
 
 
 
 NfcManager.start();
+
+function ToolTip({ x, y }: { x: SharedValue<number>; y: SharedValue<number> }) {
+  return <Circle cx={x} cy={y} r={8} color="black" />;
+}
 
 function printStructuredJson(data: Record<string, any>) {
   if (!data || typeof data !== 'object') {
@@ -30,7 +35,6 @@ function printStructuredJson(data: Record<string, any>) {
   });
 }
 
-
 const App = () => {
   const [selectedMode, setSelectedMode] = useState('live');
   const [timeRange, setTimeRange] = useState('-30m');
@@ -40,6 +44,8 @@ const App = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentFieldName, setCurrentFieldName] = useState(null);
   const [selectedRange, setSelectedRange] = useState(null);
+  const {state, isActive} = useChartPressState({x:0, y: {value: 0}});
+  const [scrollEnabled, setScrollEnabled] = useState(true);
   const [historicalData, setHistoricalData] = useState({
   boolean_percentages: {},
   fault_counts: {},
@@ -47,6 +53,15 @@ const App = () => {
   });
 
   const font = useFont(require("./roboto.ttf"), 12);
+  const ttFont = useFont(require("./roboto-bold.ttf"), 18);
+  const ttvalue = useDerivedValue(() => {
+    return state.y.value.value.value.toFixed(2);
+  }, [state]);
+
+  useEffect(() => {
+    setScrollEnabled(!isActive);
+  }, [isActive]);
+
 
 
 
@@ -184,7 +199,7 @@ const App = () => {
             </TouchableOpacity>
           ))}
         </View>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} scrollEnabled={scrollEnabled}>
           {/* Float Data Tab */}
           <Text style={styles.header}>Float Data</Text>
           <TouchableOpacity style={styles.floatScanButton} onPress={scanFloatTab}>
@@ -201,30 +216,54 @@ const App = () => {
 
               <View style={{ height: 300}}>
                 <CartesianChart
+                  chartPressState={state}
                   data={formattedFloatData}
                   xKey="timestamp"
                   yKeys={["value"]}
-                  domainPadding={{bottom:50, right: 15}}
+                  domainPadding={{ bottom: 50, right: 15 }}
                   xAxis={{
-                  font,
-                  labelRotate: -45,
-                  labelPosition: 'inset',
+                    font,
+                    labelRotate: -45,
+                    labelPosition: 'inset',
                     formatXLabel: (label) =>
                       new Date(label).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
                       }).replace(/\s/g, ' '),
                   }}
-                  yAxis={[{
-                    font,
-                    labelPosition: 'outset',
-                    domain: [0],
-                  }]}
+                  yAxis={[
+                    {
+                      font,
+                      labelPosition: 'outset',
+                      domain: [0],
+                    },
+                  ]}
                 >
-                  {({ points }) => (
-                    <Line points={points.value} color="red" strokeWidth={3} />
+                  {({ points, chartBounds }) => (
+                    <>
+                      {/* Now this is part of the chart's render function */}
+                      <SKText
+                        x={20}
+                        y={15}
+                        font={ttFont}
+                        text={ttvalue}
+                        color={"red"}
+                        style={"fill"}
+                      />
+                      <Line points={points.value} color="red" strokeWidth={3} />
+                      {isActive && (
+                        <ToolTip
+                          x={state.x.position}
+                          y={state.y.value.position}
+                          leftBound={chartBounds.left}
+                          rightBound={chartBounds.right}
+                        />
+                      )}
+                    </>
                   )}
                 </CartesianChart>
+
+
 
               </View>
               <Text style={styles.header}>Data Points</Text>
