@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ImageBackground, Modal } from 'react-native';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
-import { CartesianChart, Line, useChartPressState } from 'victory-native';
-import { Circle, useFont, Text as SKText } from "@shopify/react-native-skia";
+import { CartesianChart, Line, useChartPressState, Area } from 'victory-native';
+import { Circle, LinearGradient, vec, useFont, Text as SKText } from "@shopify/react-native-skia";
 import {useDerivedValue, type SharedValue} from "react-native-reanimated"
+//import { LinearGradient } from 'react-native-svg';
 
 
 
@@ -241,7 +242,6 @@ const App = () => {
                 >
                   {({ points, chartBounds }) => (
                     <>
-                      {/* Now this is part of the chart's render function */}
                       <SKText
                         x={20}
                         y={15}
@@ -250,7 +250,23 @@ const App = () => {
                         color={"red"}
                         style={"fill"}
                       />
-                      <Line points={points.value} color="red" strokeWidth={3} />
+                      <Area
+                        points={points.value}
+                        y0={chartBounds.bottom}
+                        animate={{ type: "timing", duration: 500 }}
+                      >
+                        <LinearGradient
+                          start={vec(chartBounds.left, chartBounds.top)}
+                          end={vec(chartBounds.left, chartBounds.bottom)}
+                          colors={["#ff000091", "#ff000000"]}
+                        />
+                      </Area>
+                      <Line
+                        points={points.value}
+                        color="red"
+                        strokeWidth={3}
+                        animate={{ type: "timing", duration: 500 }}
+                      />
                       {isActive && (
                         <ToolTip
                           x={state.x.position}
@@ -261,6 +277,7 @@ const App = () => {
                       )}
                     </>
                   )}
+
                 </CartesianChart>
 
 
@@ -374,7 +391,7 @@ const styles = StyleSheet.create({
   rangeTextActive: { color: '#fff' },
   scanButton: { backgroundColor: '#007bff', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
   scanButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  floatScanButton: {backgroundColor: '#24eb45ff', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
+  floatScanButton: {backgroundColor: '#24eb98ff', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
   card: { backgroundColor: '#ffffffcc', borderRadius: 16, padding: 28, marginBottom: 16,  borderWidth: 15, borderColor: '#f5f5f5ff'},
   header: { fontSize: 18, fontWeight: 'bold', marginTop: 20 },
   item: { fontSize: 16, marginVertical: 3 },
