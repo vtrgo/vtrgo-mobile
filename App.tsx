@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ImageBackground, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ImageBackground, Modal, Alert } from 'react-native';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
-import { CartesianChart, Line, useChartPressState, Area } from 'victory-native';
+import { CartesianChart, Line, useChartPressState, Area, useChartTransformState } from 'victory-native';
 import { Circle, LinearGradient, vec, useFont, Text as SKText } from "@shopify/react-native-skia";
 import {useDerivedValue, type SharedValue} from "react-native-reanimated"
 //import { LinearGradient } from 'react-native-svg';
@@ -54,7 +54,7 @@ const App = () => {
   });
 
   const font = useFont(require("./roboto.ttf"), 12);
-  const ttFont = useFont(require("./roboto-bold.ttf"), 18);
+  const ttFont = useFont(require("./roboto-bold.ttf"), 24);
   const ttvalue = useDerivedValue(() => {
     return state.y.value.value.value.toFixed(2);
   }, [state]);
@@ -62,6 +62,11 @@ const App = () => {
   useEffect(() => {
     setScrollEnabled(!isActive);
   }, [isActive]);
+
+  const transformState = useChartTransformState({
+    scaleX: 1.0, // Initial X-axis scale
+    scaleY: 1.0, // Initial Y-axis scale
+  });
 
 
 
@@ -87,6 +92,7 @@ const App = () => {
       } catch (parseError) {
         console.error('❌ Failed to parse JSON:', parseError.message);
         console.log('📝 Raw string:', jsonString);
+        Alert.alert("Data Error", "Received incomplete or corrupted data. Rescan HTTP data.");
       }
 
       printStructuredJson(jsonPayload);
@@ -218,6 +224,7 @@ const App = () => {
               <View style={{ height: 300}}>
                 <CartesianChart
                   chartPressState={state}
+                  transformState={transformState.state}
                   data={formattedFloatData}
                   xKey="timestamp"
                   yKeys={["value"]}
@@ -226,6 +233,7 @@ const App = () => {
                     font,
                     labelRotate: -45,
                     labelPosition: 'inset',
+                    enableRescaling: true,
                     formatXLabel: (label) =>
                       new Date(label).toLocaleTimeString([], {
                         hour: '2-digit',
@@ -242,14 +250,6 @@ const App = () => {
                 >
                   {({ points, chartBounds }) => (
                     <>
-                      <SKText
-                        x={20}
-                        y={15}
-                        font={ttFont}
-                        text={ttvalue}
-                        color={"red"}
-                        style={"fill"}
-                      />
                       <Area
                         points={points.value}
                         y0={chartBounds.bottom}
@@ -266,6 +266,14 @@ const App = () => {
                         color="red"
                         strokeWidth={3}
                         animate={{ type: "timing", duration: 500 }}
+                      />
+                      <SKText
+                        x={35}
+                        y={215}
+                        font={ttFont}
+                        text={ttvalue}
+                        color={"black"}
+                        style={"fill"}
                       />
                       {isActive && (
                         <ToolTip
@@ -391,7 +399,7 @@ const styles = StyleSheet.create({
   rangeTextActive: { color: '#fff' },
   scanButton: { backgroundColor: '#007bff', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
   scanButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  floatScanButton: {backgroundColor: '#24eb98ff', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
+  floatScanButton: {backgroundColor: '#eb2424ff', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
   card: { backgroundColor: '#ffffffcc', borderRadius: 16, padding: 28, marginBottom: 16,  borderWidth: 15, borderColor: '#f5f5f5ff'},
   header: { fontSize: 18, fontWeight: 'bold', marginTop: 20 },
   item: { fontSize: 16, marginVertical: 3 },
