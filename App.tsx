@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ImageBackground, Modal, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ImageBackground, Modal, Alert, ActivityIndicator } from 'react-native';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 import { CartesianChart, Line, useChartPressState, Area, useChartTransformState } from 'victory-native';
 import { Circle, LinearGradient, vec, useFont, Text as SKText } from "@shopify/react-native-skia";
 import {useDerivedValue, type SharedValue} from "react-native-reanimated"
-//import { LinearGradient } from 'react-native-svg';
 
 
 
@@ -47,6 +46,8 @@ const App = () => {
   const [selectedRange, setSelectedRange] = useState(null);
   const {state, isActive} = useChartPressState({x:0, y: {value: 0}});
   const [scrollEnabled, setScrollEnabled] = useState(true);
+  const [nfcPromptVisible, setNfcPromptVisible] = useState(false);
+  const [tooltipText, setTooltipText] = useState('');
   const [historicalData, setHistoricalData] = useState({
   boolean_percentages: {},
   fault_counts: {},
@@ -68,10 +69,21 @@ const App = () => {
     scaleY: 1.0, // Initial Y-axis scale
   });
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTooltipText(ttvalue.value);
+    }, 100); // check every 100ms — adjust as needed
+
+    return () => clearInterval(id);
+  }, []);
+
+
 
 
 
   const readNfc = async () => {
+    setNfcPromptVisible(true);
+
     try {
       await NfcManager.requestTechnology(NfcTech.Ndef);
       const tag = await NfcManager.getTag();
@@ -102,10 +114,12 @@ const App = () => {
     } catch (e) {
       console.warn(e);
     } finally {
+      setNfcPromptVisible(false);
       NfcManager.cancelTechnologyRequest();
     }
   };
   const scanFloatTab = async () => {
+    setNfcPromptVisible(true);
     try {
       await NfcManager.requestTechnology(NfcTech.Ndef);
       const tag = await NfcManager.getTag();
@@ -153,6 +167,7 @@ const App = () => {
     } catch (e) {
       console.warn('⚠️ NFC error:', e);
     } finally {
+      setNfcPromptVisible(false);
       NfcManager.cancelTechnologyRequest();
     }
   };
@@ -170,6 +185,7 @@ const App = () => {
 
     try {
       await NfcManager.cancelTechnologyRequest().catch(() => null);
+      setNfcPromptVisible(true);
       await NfcManager.requestTechnology(NfcTech.Ndef);
 
       const bytes = Ndef.encodeMessage([
@@ -181,6 +197,7 @@ const App = () => {
     } catch (err) {
       console.warn("❌ NFC write error:", err);
     } finally {
+      setNfcPromptVisible(false);
       await NfcManager.cancelTechnologyRequest().catch(() => null);
     }
   };
@@ -213,99 +230,95 @@ const App = () => {
               <Text style={styles.scanButtonText}>🔄 Scan Float Data</Text>
           </TouchableOpacity>
           {selectedMode === 'float' && (
-            
-            <View style={styles.card}>
-              {graphTitle !== '' && (
-                <Text style={styles.header}>
-                  {graphTitle.replace(/\./g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </Text>
-              )}
-
-              <View style={{ height: 300}}>
-                <CartesianChart
-                  chartPressState={state}
-                  transformState={transformState.state}
-                  data={formattedFloatData}
-                  xKey="timestamp"
-                  yKeys={["value"]}
-                  domainPadding={{ bottom: 50, right: 15 }}
-                  xAxis={{
-                    font,
-                    labelRotate: -45,
-                    labelPosition: 'inset',
-                    enableRescaling: true,
-                    formatXLabel: (label) =>
-                      new Date(label).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      }).replace(/\s/g, ' '),
-                  }}
-                  yAxis={[
-                    {
-                      font,
-                      labelPosition: 'outset',
-                      domain: [0],
-                    },
-                  ]}
-                >
-                  {({ points, chartBounds }) => (
-                    <>
-                      <Area
-                        points={points.value}
-                        y0={chartBounds.bottom}
-                        animate={{ type: "timing", duration: 500 }}
-                      >
-                        <LinearGradient
-                          start={vec(chartBounds.left, chartBounds.top)}
-                          end={vec(chartBounds.left, chartBounds.bottom)}
-                          colors={["#ff000091", "#ff000000"]}
-                        />
-                      </Area>
-                      <Line
-                        points={points.value}
-                        color="red"
-                        strokeWidth={3}
-                        animate={{ type: "timing", duration: 500 }}
-                      />
-                      <SKText
-                        x={35}
-                        y={215}
-                        font={ttFont}
-                        text={ttvalue}
-                        color={"black"}
-                        style={"fill"}
-                      />
-                      {isActive && (
-                        <ToolTip
-                          x={state.x.position}
-                          y={state.y.value.position}
-                          leftBound={chartBounds.left}
-                          rightBound={chartBounds.right}
-                        />
-                      )}
-                    </>
-                  )}
-
-                </CartesianChart>
-
-
-
-              </View>
-              <Text style={styles.header}>Data Points</Text>
-              {floatData.length > 0 ? (
-              <View>
-                {floatData.map((item, index) => (
-                  <Text key={index} style={styles.item}>
-                    • {new Date(item.time).toLocaleTimeString()}: <Text style={styles.bold}>{item.value.toFixed(2)}</Text>
+            <>
+              {/* Card 1: Graph */}
+              <View style={styles.card}>
+                {graphTitle !== '' && (
+                  <Text style={styles.header}>
+                    {graphTitle.replace(/\./g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                   </Text>
-                ))}
+                )}
+
+                <View style={{ height: 300 }}>
+                  <CartesianChart
+                    chartPressState={state}
+                    //transformState={transformState.state} //Uncomment for Pan/zoom
+                    data={formattedFloatData}
+                    xKey="timestamp"
+                    yKeys={["value"]}
+                    domainPadding={{ bottom: 50, right: 15 }}
+                    xAxis={{
+                      font,
+                      labelRotate: -45,
+                      labelPosition: 'inset',
+                      enableRescaling: true,
+                      formatXLabel: (label) =>
+                        new Date(label).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        }).replace(/\s/g, ' '),
+                    }}
+                    yAxis={[
+                      {
+                        font,
+                        labelPosition: 'outset',
+                        domain: [0],
+                      },
+                    ]}
+                  >
+                    {({ points, chartBounds }) => (
+                      <>
+                        <Area
+                          points={points.value}
+                          y0={chartBounds.bottom}
+                          animate={{ type: "timing", duration: 500 }}
+                        >
+                          <LinearGradient
+                            start={vec(chartBounds.left, chartBounds.top)}
+                            end={vec(chartBounds.left, chartBounds.bottom)}
+                            colors={["#ff000091", "#ff000000"]}
+                          />
+                        </Area>
+                        <Line
+                          points={points.value}
+                          color="red"
+                          strokeWidth={3}
+                          animate={{ type: "timing", duration: 500 }}
+                        />
+                        {isActive && (
+                          <ToolTip
+                            x={state.x.position}
+                            y={state.y.value.position}
+                            leftBound={chartBounds.left}
+                            rightBound={chartBounds.right}
+                          />
+                        )}
+                      </>
+                    )}
+                  </CartesianChart>
+                </View>
+                <Text style={styles.chartValue}>{ttvalue.value}</Text>
+
               </View>
 
-              ) : (
-                <Text style={styles.noDataText}>No float data. Tap "Scan Float Data".</Text>
-              )}
-            </View>
+              {/* Card 2: Data Points */}
+              <View style={styles.card}>
+                <Text style={styles.header}>Data Points</Text>
+                {floatData.length > 0 ? (
+                  <View>
+                    {floatData.map((item, index) => (
+                      <Text key={index} style={styles.item}>
+                        • {new Date(item.time).toLocaleTimeString()}: <Text style={styles.bold}>{item.value.toFixed(2)}</Text>
+                      </Text>
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={styles.noDataText}>No float data. Tap "Scan Float Data".</Text>
+                )}
+              </View>
+            </>
           )}
+
 
         <Modal visible={modalVisible} transparent animationType="slide">
             <View style={styles.modalOverlay}>
@@ -337,6 +350,18 @@ const App = () => {
               </View>
             </View>
           </Modal>
+          <Modal visible={nfcPromptVisible} transparent animationType="fade">
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Hold your phone near the NFC tag</Text>
+                 <ActivityIndicator size="large" color="#007bff" style={{ marginVertical: 20 }} />
+                <TouchableOpacity onPress={() => setNfcPromptVisible(false)} style={styles.cancelButton}>
+                  <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
 
         {/* Scan Button */}
         <TouchableOpacity style={styles.scanButton} onPress={readNfc}>
@@ -417,4 +442,5 @@ const styles = StyleSheet.create({
   rangeButton: {padding: 12, backgroundColor: '#E0E0E0', borderRadius: 6, marginVertical: 6, width: '100%', alignItems: 'center',},
   cancelButton: {marginTop: 10,},
   cancelText: {color: 'red', fontSize: 16,},
+  chartValue: {textAlign: 'center',fontSize: 18,fontWeight: 'bold',marginTop: 10,color: 'black',},
 });
