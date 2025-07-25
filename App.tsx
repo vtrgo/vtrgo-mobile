@@ -35,6 +35,19 @@ function printStructuredJson(data: Record<string, any>) {
   });
 }
 
+function groupByPrefix(data: Record<string, any>) {
+  const result: Record<string, Record<string, any>> = {};
+  for (const key in data) {
+    const [prefix, rest] = key.split('.', 2);
+    if (!result[prefix]) {
+      result[prefix] = {};
+    }
+    result[prefix][rest] = data[key];
+  }
+  return result;
+}
+
+
 const App = () => {
   const [selectedMode, setSelectedMode] = useState('live');
   const [timeRange, setTimeRange] = useState('-30m');
@@ -109,7 +122,36 @@ const App = () => {
 
       printStructuredJson(jsonPayload);
       // Optional: Store parsed JSON in state or variable
-      setHistoricalData(jsonPayload);
+      const groupedData = { ...jsonPayload };
+
+      if (groupedData.boolean_percentages) {
+        groupedData.boolean_percentages = groupByPrefix(groupedData.boolean_percentages);
+      }
+      if (groupedData.fault_counts) {
+        groupedData.fault_counts = groupByPrefix(groupedData.fault_counts);
+      }
+      if (groupedData.float_averages) {
+        const nestedFloats = {};
+
+        Object.entries(groupedData.float_averages).forEach(([key, value]) => {
+          const parts = key.split('.'); // e.g. ['Floats', 'HopperVibratory', 'Temperature']
+          if (parts.length !== 3) return;
+
+          const [root, group, field] = parts;
+
+          if (!nestedFloats[group]) nestedFloats[group] = {};
+          nestedFloats[group][field] = value;
+        });
+
+        groupedData.float_averages = nestedFloats;
+      }
+
+
+      setHistoricalData(groupedData);
+
+      console.log("🧪 Grouped Data:", JSON.stringify(groupedData, null, 2));
+
+
 
     } catch (e) {
       console.warn(e);
@@ -235,7 +277,7 @@ const App = () => {
               <View style={styles.card}>
                 {graphTitle !== '' && (
                   <Text style={styles.header}>
-                    {graphTitle.replace(/\./g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    {graphTitle.replace(/\./g, ' ').replace(/([A-Z])/g, ' $1') .replace(/\b\w/g, l => l.toUpperCase()) .trim()}
                   </Text>
                 )}
 
@@ -376,26 +418,46 @@ const App = () => {
                   <Text style={styles.header}>
                     {sectionTitle.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                   </Text>
-                  {Object.entries(entries).map(([key, value], idx) => (
-                    <View key={idx} style={styles.itemRow}>
-                      <Text style={styles.item}>
-                        • {key}: <Text style={styles.bold}>{value}</Text>
-                      </Text>
-                      {sectionTitle === 'float_averages' && (
-                      <TouchableOpacity
-                        style={styles.nfcButton}
-                        onPress={() => {
-                          setCurrentFieldName(key); // track what float key was requested
-                          setModalVisible(true);    // open range picker
-                        }}
-                      >
-                        <Text style={styles.nfcButtonText}>Request Data</Text>
-                      </TouchableOpacity>
-                      )}
-                    </View>
-                  ))}
+
+                  {/* If entries is a nested object (grouped), show groups */}
+                  {typeof entries === 'object' && Object.values(entries)[0] && typeof Object.values(entries)[0] === 'object' ? (
+                    Object.entries(entries).map(([group, groupEntries]) => (
+                      <View key={group}>
+                        <Text style={styles.subheader}>{group.replace(/([A-Z])/g, ' $1').trim()}</Text>
+                        {Object.entries(groupEntries).map(([key, value], idx) => (
+                          <View key={idx} style={styles.itemRow}>
+                            <Text style={styles.item}>
+                              • {key.replace(/([A-Z])/g, ' $1').trim()}: <Text style={styles.bold}>{value}</Text>
+                            </Text>
+                            {sectionTitle === 'float_averages' && (
+                              <TouchableOpacity
+                                style={styles.nfcButton}
+                                onPress={() => {
+                                  setCurrentFieldName(`${group}.${key}`);
+                                  setModalVisible(true);
+                                }}
+                              >
+                                <Text style={styles.nfcButtonText}>Request Data</Text>
+                              </TouchableOpacity>
+                            )}
+                          </View>
+                        ))}
+                      </View>
+                    ))
+                  ) : (
+                    // Otherwise, entries are flat (e.g. project_meta)
+                    Object.entries(entries).map(([key, value], idx) => (
+                      <View key={idx} style={styles.itemRow}>
+                        <Text style={styles.item}>
+                          • {key}: <Text style={styles.bold}>{value}</Text>
+                        </Text>
+                      </View>
+                    ))
+                  )}
                 </View>
               ))}
+
+
             </>
           )}
         
@@ -426,7 +488,7 @@ const styles = StyleSheet.create({
   scanButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   floatScanButton: {backgroundColor: '#eb2424ff', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 10, alignItems: 'center', marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 },
   card: { backgroundColor: '#ffffffcc', borderRadius: 16, padding: 28, marginBottom: 16,  borderWidth: 15, borderColor: '#f5f5f5ff'},
-  header: { fontSize: 18, fontWeight: 'bold', marginTop: 20 },
+  header: { fontSize: 24, fontWeight: '900', marginTop: 10, color: "black" },
   item: { fontSize: 16, marginVertical: 3 },
   bold: { fontWeight: 'bold' },
   sectionHeader: { fontSize: 22, fontWeight: 'bold', marginTop: 20, marginBottom: 10, textAlign: 'center', color: '#2280b0' },
@@ -443,4 +505,5 @@ const styles = StyleSheet.create({
   cancelButton: {marginTop: 10,},
   cancelText: {color: 'red', fontSize: 16,},
   chartValue: {textAlign: 'center',fontSize: 18,fontWeight: 'bold',marginTop: 10,color: 'black',},
+  subheader: {fontSize: 18,fontWeight: '600',marginTop: 15,marginBottom: 5,color: '#555',},
 });
