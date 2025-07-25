@@ -1,97 +1,95 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# My React Native NFC Dashboard App
 
-# Getting Started
+This project is a React Native app that reads NFC tags and displays binary data from an industrial PLC system in a user-friendly dashboard. It is built with the **React Native CLI** and runs on **physical Android or iOS devices**.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## 📦 Features
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+- 🔍 Reads binary NDEF data via NFC
+- 📊 Visualizes PLC values using charts and labels
+- 📱 Cross-platform: Android + iOS support
+- ⚡ Fast Refresh for efficient development
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+---
+
+## 🛠 React Native CLI Setup (No Expo)
+
+This app uses **React Native CLI** and must be run on a **real device** — NFC does not work in emulators.
+
+### 1. Prerequisites
+
+Make sure the following tools are installed:
+
+- [Node.js (LTS version)](https://nodejs.org/)
+- [Java Development Kit (JDK 11+)](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
+- [Android Studio](https://developer.android.com/studio) (for SDK & platform tools)
+- [Xcode](https://developer.apple.com/xcode/) (macOS only, for iOS builds)
+- [CocoaPods](https://guides.cocoapods.org/using/getting-started.html) (iOS only)
+
+---
+
+### 2. Physical Device Setup
+
+#### Android
+
+- Enable **Developer Options** on your phone
+- Turn on **USB Debugging**
+- Connect your phone via USB and accept any permissions
+- Verify connection:
+  ```sh
+  adb devices
+  ```
+
+#### iOS (macOS only)
+
+- Open the Xcode workspace:
+  ```sh
+  open ios/YourAppName.xcworkspace
+  ```
+- Connect your iPhone via USB
+- Select it as the run target in Xcode
+- Ensure a valid team is selected for signing (Xcode > Preferences > Accounts)
+
+---
+
+### 3. Install and Run the App
+
+Clone the project and install dependencies:
 
 ```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+git clone https://github.com/Jon-Hincks/VTR_Scanner_React.git
+cd VTR_Scanner_React
+yarn install        # or npm install
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
+If you're on macOS targeting iOS:
 
 ```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+cd ios
+pod install
+cd ..
 ```
 
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+Install app:
 
 ```sh
-bundle install
+cd android
+Gradlew assembleRelease
+adb install -r app/build/outputs/apk/release/app-release.apk
+
 ```
 
-Then, and every time you update your native dependencies, run:
+---
 
-```sh
-bundle exec pod install
-```
+## 📲 How to Use
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+1. Launch the app on your phone (not emulator)
+2. Scan an NFC tag that contains PLC data
+3. The app will read and parse the data
+4. View it on a clean dashboard with charts and labels
 
-```sh
-# Using npm
-npm run ios
+> ⚠️ NFC requires a real phone with hardware support — emulators will not work.
 
-# OR using Yarn
-yarn ios
-```
+---
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
