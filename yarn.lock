@@ -5867,9 +5867,9 @@ react-native-nfc-manager@^3.16.1:
   resolved "https://registry.npmjs.org/react-native-nfc-manager/-/react-native-nfc-manager-3.16.2.tgz"
   integrity sha512-4VNDr4/Y/Rg/4Px8Mz2/bkuE4cS/xVU81L24iS8O4gazwJsfmMmrOeFPriBa8mRhlPUE6PwP9OzkzS7svK0iBg==
 
-react-native-reanimated@^3.18.0:
+react-native-reanimated@3.18.0:
   version "3.18.0"
-  resolved "https://registry.npmjs.org/react-native-reanimated/-/react-native-reanimated-3.18.0.tgz"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-3.18.0.tgz#0a246eab38a9e807887fe561a2868cfe85351f3c"
   integrity sha512-eVcNcqeOkMW+BUWAHdtvN3FKgC8J8wiEJkX6bNGGQaLS7m7e4amTfjIcqf/Ta+lerZLurmDaQ0lICI1CKPrb1Q==
   dependencies:
     "@babel/plugin-transform-arrow-functions" "^7.0.0-0"

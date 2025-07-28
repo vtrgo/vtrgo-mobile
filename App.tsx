@@ -160,6 +160,7 @@ const App = () => {
       NfcManager.cancelTechnologyRequest();
     }
   };
+
   const scanFloatTab = async () => {
     setNfcPromptVisible(true);
     try {
@@ -215,15 +216,18 @@ const App = () => {
   };
 
   const writeNfcFloatRequest = async (fieldName, range = timeRange) => {
+    // ✅ Prepend "Floats." if not already present
+    const fullFieldName = fieldName.startsWith("Floats.") ? fieldName : `Floats.${fieldName}`;
+
     const payload = {
       cmd: "float_range",
-      field: fieldName,
-      start: range, // ✅ use passed value
+      field: fullFieldName,
+      start: range,
       stop: "now()",
     };
 
     console.log("📝 Writing NFC payload:", JSON.stringify(payload, null, 2));
-    setGraphTitle(fieldName);
+    setGraphTitle(fullFieldName); // optional — you could keep original name if preferred
 
     try {
       await NfcManager.cancelTechnologyRequest().catch(() => null);
@@ -243,6 +247,7 @@ const App = () => {
       await NfcManager.cancelTechnologyRequest().catch(() => null);
     }
   };
+
 
   return (
     <ImageBackground
@@ -456,12 +461,8 @@ const App = () => {
                   )}
                 </View>
               ))}
-
-
             </>
           )}
-        
-
       </ScrollView>
     </ImageBackground>
   );
