@@ -73,7 +73,7 @@ const App = () => {
 
   return (
     <ImageBackground
-      source={require('./assets/vtrfeedersolutionsinc_logo.jpg')}
+      source={require('./assets/vtrfeedersolutionsinc_logo.png')}
       style={{ flex: 1 , backgroundColor: theme.background}}
       resizeMode="contain"
       imageStyle={{ opacity: 0.2 }}
@@ -83,14 +83,11 @@ const App = () => {
 
       <ScrollView contentContainerStyle={styles.container} scrollEnabled={scrollEnabled}>
         {/* Float Data Tab */}
-        <Text style={styles.header}>Float Data</Text>
-
-        <TouchableOpacity style={styles.floatScanButton} onPress={scanFloatTab}>
-          <Text style={styles.scanButtonText}>🔄 Scan Float Data</Text>
-        </TouchableOpacity>
-
         {selectedMode === 'float' && (
           <>
+             <TouchableOpacity style={styles.floatScanButton} onPress={scanFloatTab}>
+              <Text style={styles.scanButtonText}>🔄 Scan Float Data</Text>
+            </TouchableOpacity>
             <View style={styles.card}>
               <FloatChart
                 formattedFloatData={formattedFloatData}
@@ -126,21 +123,23 @@ const App = () => {
           theme={theme}
         />
 
-        {/* Scan Button */}
-        <TouchableOpacity style={styles.scanButton} onPress={readNfc}>
-          <Text style={styles.scanButtonText}>🔄 Scan NFC</Text>
-        </TouchableOpacity>
-
         {selectedMode === 'live' && (
-          <LiveDataSection
-            historicalData={historicalData}
-            onRequestField={(field) => {
-              setCurrentFieldName(field);
-              setModalVisible(true);
-            }}
-            theme={theme}
-          />
+          <View>
+            <TouchableOpacity style={styles.scanButton} onPress={readNfc}>
+              <Text style={styles.scanButtonText}>🔄 Scan NFC</Text>
+            </TouchableOpacity>
+
+            <LiveDataSection
+              historicalData={historicalData}
+              onRequestField={(field) => {
+                setCurrentFieldName(field);
+                setModalVisible(true);
+              }}
+              theme={theme}
+            />
+          </View>
         )}
+
       </ScrollView>
     </ImageBackground>
   );

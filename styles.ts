@@ -17,7 +17,7 @@ export const createStyles = (theme: {
       marginTop: 0,
       marginBottom: 50,
       paddingBottom: 100,
-      backgroundColor: theme.background,
+      backgroundColor: "transparent",
     },
     selectionContainer: {
       flexDirection: 'row',

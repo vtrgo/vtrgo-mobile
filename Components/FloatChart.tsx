@@ -8,6 +8,9 @@ export function ToolTip({ x, y }) {
 }
 
 export default function FloatChart({ formattedFloatData, graphTitle, font, ttvalue, state, isActive }) {
+  const yMax = Math.max(...formattedFloatData.map(d => d.value));
+  const paddedYMax = yMax * 1.1; // Add 10% headroom
+
   return (
     <View style={{ height: 340 }}>
       {graphTitle !== '' && (
@@ -35,7 +38,7 @@ export default function FloatChart({ formattedFloatData, graphTitle, font, ttval
           {
             font,
             labelPosition: 'outset',
-            domain: [0],
+            domain: [0, paddedYMax],
           },
         ]}
       >
@@ -67,7 +70,9 @@ export default function FloatChart({ formattedFloatData, graphTitle, font, ttval
           </>
         )}
       </CartesianChart>
-      <Text style={{ textAlign: 'center', fontSize: 18, fontWeight: 'bold', marginTop: 10 }}>{ttvalue.value}</Text>
+      <Text style={{ textAlign: 'center', fontSize: 18, fontWeight: 'bold', marginTop: 10 }}>
+        {ttvalue.value} @ {new Date(state.x?.value?.value || 0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+      </Text>
     </View>
   );
 }
