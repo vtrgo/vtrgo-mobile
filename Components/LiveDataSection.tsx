@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { styles } from '../styles';
+import { createStyles } from '../styles';
+import { lightTheme, darkTheme } from '../theme';
 
-export default function LiveDataSection({ historicalData, onRequestField }) {
+export default function LiveDataSection({ historicalData, onRequestField, theme }) {
+  const styles = createStyles(theme);
   if (!historicalData) return null;
 
   return (

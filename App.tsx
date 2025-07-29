@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ImageBackground, Modal, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ImageBackground, Modal, Alert, ActivityIndicator, useColorScheme } from 'react-native';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 import { CartesianChart, Line, useChartPressState, Area, useChartTransformState } from 'victory-native';
 import { Circle, LinearGradient, vec, useFont, Text as SKText } from "@shopify/react-native-skia";
@@ -12,7 +12,8 @@ import NfcPromptModal from './Components/NfcPromptModal';
 import TimeRangeModal from './Components/TimeRangeModal';
 import LiveDataSection from './Components/LiveDataSection';
 import { useNfc } from './hooks/useNfc';
-import { styles } from './styles';
+import { createStyles } from './styles';
+import { lightTheme, darkTheme } from './theme';
 
 NfcManager.start();
 
@@ -29,6 +30,10 @@ const App = () => {
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const [nfcPromptVisible, setNfcPromptVisible] = useState(false);
   const [tooltipText, setTooltipText] = useState('');
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
+  const styles = createStyles(theme);
+
   const [historicalData, setHistoricalData] = useState({
     boolean_percentages: {},
     fault_counts: {},
@@ -69,12 +74,12 @@ const App = () => {
   return (
     <ImageBackground
       source={require('./assets/vtrfeedersolutionsinc_logo.jpg')}
-      style={{ flex: 1 }}
+      style={{ flex: 1 , backgroundColor: theme.background}}
       resizeMode="contain"
       imageStyle={{ opacity: 0.2 }}
     >
       {/* Sticky Header */}
-      <ModeSelector selectedMode={selectedMode} onSelect={setSelectedMode} />
+      <ModeSelector selectedMode={selectedMode} onSelect={setSelectedMode} theme={theme} />
 
       <ScrollView contentContainerStyle={styles.container} scrollEnabled={scrollEnabled}>
         {/* Float Data Tab */}
@@ -94,11 +99,12 @@ const App = () => {
                 ttvalue={ttvalue}
                 state={state}
                 isActive={isActive}
+                theme={theme}
               />
             </View>
 
             <View style={styles.card}>
-              <FloatDataList data={floatData} />
+              <FloatDataList data={floatData} theme={theme} />
             </View>
           </>
         )}
@@ -111,11 +117,13 @@ const App = () => {
             setModalVisible(false);
             writeNfcFloatRequest(currentFieldName, value);
           }}
+          theme={theme}
         />
 
         <NfcPromptModal
           visible={nfcPromptVisible}
           onCancel={() => setNfcPromptVisible(false)}
+          theme={theme}
         />
 
         {/* Scan Button */}
@@ -130,6 +138,7 @@ const App = () => {
               setCurrentFieldName(field);
               setModalVisible(true);
             }}
+            theme={theme}
           />
         )}
       </ScrollView>
