@@ -3,6 +3,14 @@ import { Alert } from 'react-native';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 import { groupByPrefix, printStructuredJson } from '../utils/dataUtils';
 
+function handleNfcError(e) {
+  if (e instanceof Error && e.message?.toLowerCase().includes('cancel')) {
+    console.log('👋 NFC action cancelled by user.');
+  } else {
+    console.warn('❌ NFC error:', e);
+  }
+}
+
 export function useNfc({
   onFloatScan,
   onLiveScan,
@@ -58,9 +66,9 @@ export function useNfc({
       }
 
       onLiveScan(groupedData);
-    } catch (e) {
-      console.warn('❌ NFC read error:', e);
-    } finally {
+      } catch (e) {
+        handleNfcError(e);
+      } finally {
       setPromptVisible(false);
       cancelTech();
     }
@@ -93,7 +101,7 @@ export function useNfc({
         expanded.map(d => ({ ...d, timestamp: new Date(d.time).getTime() }))
       );
     } catch (e) {
-      console.error('❌ Float parse error:', e);
+      handleNfcError(e);
     } finally {
       setPromptVisible(false);
       cancelTech();

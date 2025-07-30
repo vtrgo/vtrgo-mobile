@@ -40,6 +40,17 @@ const App = () => {
     float_averages: {}
   });
 
+  const handleNfcCancel = async () => {
+    try {
+      await NfcManager.cancelTechnologyRequest(); // cancels the pending NFC request
+    } catch (e) {
+      console.warn('No active NFC request to cancel:', e);
+    } finally {
+      setNfcPromptVisible(false);
+    }
+  };
+
+
   const font = useFont(require('./roboto.ttf'), 12);
   const ttFont = useFont(require('./roboto-bold.ttf'), 24);
   const ttvalue = useDerivedValue(() => {
@@ -119,7 +130,7 @@ const App = () => {
 
         <NfcPromptModal
           visible={nfcPromptVisible}
-          onCancel={() => setNfcPromptVisible(false)}
+          onCancel={handleNfcCancel}
           theme={theme}
         />
 
