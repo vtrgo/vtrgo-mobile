@@ -11,6 +11,7 @@ import FloatDataList from './Components/FloatDataList';
 import NfcPromptModal from './Components/NfcPromptModal';
 import TimeRangeModal from './Components/TimeRangeModal';
 import LiveDataSection from './Components/LiveDataSection';
+import FullscreenChartModal from './Components/FullscreenChartModal';
 import { useNfc } from './hooks/useNfc';
 import { createStyles } from './styles';
 import { lightTheme, darkTheme } from './theme';
@@ -31,6 +32,7 @@ const App = () => {
   const [nfcPromptVisible, setNfcPromptVisible] = useState(false);
   const [tooltipText, setTooltipText] = useState('');
   const colorScheme = useColorScheme();
+  const [showModal, setShowModal] = useState(false);
   const theme = colorScheme === 'dark' ? darkTheme : lightTheme;
   const styles = createStyles(theme);
 
@@ -100,6 +102,13 @@ const App = () => {
               <Text style={styles.scanButtonText}>🔄 Scan Float Data</Text>
             </TouchableOpacity>
             <View style={styles.card}>
+              <TouchableOpacity
+                style={styles.fullscreenButton}
+                onPress={() => setShowModal(true)}
+              >
+                <Text style={{ color: 'white' }}>🔍 Fullscreen</Text>
+              </TouchableOpacity>
+
               <FloatChart
                 formattedFloatData={formattedFloatData}
                 graphTitle={graphTitle}
@@ -150,8 +159,17 @@ const App = () => {
             />
           </View>
         )}
-
       </ScrollView>
+      <FullscreenChartModal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        theme={theme}
+        formattedFloatData={formattedFloatData}
+        transformState={transformState}
+        font={font}
+        ttFont={ttFont}
+      />
+
     </ImageBackground>
   );
 };

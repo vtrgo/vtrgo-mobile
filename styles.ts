@@ -223,4 +223,29 @@ export const createStyles = (theme: {
       marginBottom: 5,
       color: theme.fadedText,
     },
+    fullscreenButton: {
+      backgroundColor: '#007bff',
+      padding: 10,
+      borderRadius: 8,
+      alignSelf: 'flex-end',
+      marginVertical: 10,
+    },
+    modalContentFull: {
+      flex: 1,
+      backgroundColor: theme.modal,
+      padding: 83,
+    },
+    closeButton: {
+      position: 'absolute',
+      top: 20,
+      right: 20,
+      padding: 10,
+      backgroundColor: theme.primary,
+      borderRadius: 8,
+      zIndex: 1,
+    },
+    FsmodalOverlay: {
+      flex: 1,
+      backgroundColor: 'transparent',
+    },
   });
