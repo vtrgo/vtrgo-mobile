@@ -168,8 +168,9 @@ const App = () => {
         transformState={transformState}
         font={font}
         ttFont={ttFont}
+        state={state}          // <---- pass chart press state here
+        isActive={isActive}    // <---- pass press active state here
       />
-
     </ImageBackground>
   );
 };

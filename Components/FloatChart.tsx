@@ -7,7 +7,7 @@ export function ToolTip({ x, y }) {
   return <Circle cx={x} cy={y} r={8} color="grey" opacity={0.8} />;
 }
 
-export default function FloatChart({ formattedFloatData, graphTitle, font, ttvalue, state, isActive }) {
+export default function FloatChart({ formattedFloatData, graphTitle, font, ttvalue, state, isActive, transformState }) {
   const yMax = Math.max(...formattedFloatData.map(d => d.value));
   const paddedYMax = yMax * 1.1; // Add 10% headroom
 
@@ -20,6 +20,7 @@ export default function FloatChart({ formattedFloatData, graphTitle, font, ttval
       )}
       <CartesianChart
         chartPressState={state}
+        transform={transformState} 
         data={formattedFloatData}
         xKey="timestamp"
         yKeys={["value"]}
