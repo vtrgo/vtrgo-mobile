@@ -2,6 +2,21 @@ import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 import { groupByPrefix, printStructuredJson } from '../utils/dataUtils';
+import Sound from 'react-native-sound';
+
+Sound.setCategory('Playback');
+
+const scanBeep = new Sound('scan_beep.mp3', Sound.MAIN_BUNDLE, (error) => {
+  if (error) console.warn('🔇 Failed to load sound', error);
+});
+const playBeep = () => {
+  if (scanBeep && scanBeep.isLoaded()) {
+    scanBeep.setVolume(1.0);
+    scanBeep.play((success) => {
+      if (!success) console.warn('⚠️ Sound playback failed');
+    });
+  }
+};
 
 function handleNfcError(e) {
   if (e instanceof Error && e.message?.toLowerCase().includes('cancel')) {
@@ -46,6 +61,8 @@ export function useNfc({
 
       printStructuredJson(jsonPayload);
 
+      playBeep();
+
       const groupedData = { ...jsonPayload };
       if (groupedData.boolean_percentages) {
         groupedData.boolean_percentages = groupByPrefix(groupedData.boolean_percentages);
@@ -88,6 +105,8 @@ export function useNfc({
       if (!parsedData.start || !parsedData.interval || !Array.isArray(parsedData.values)) {
         throw new Error('Invalid float format');
       }
+
+      playBeep();
 
       const startTime = new Date(parsedData.start).getTime();
       const intervalMs = parsedData.interval * 1000;
