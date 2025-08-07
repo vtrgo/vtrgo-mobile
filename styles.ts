@@ -69,11 +69,6 @@ export const createStyles = (theme: {
     rangeBoxActive: {
       backgroundColor: theme.primary,
     },
-    rangeText: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: theme.text,
-    },
     rangeTextActive: {
       color: '#fff',
     },
@@ -194,21 +189,6 @@ export const createStyles = (theme: {
       marginBottom: 16,
       color: theme.text,
     },
-    rangeButton: {
-      padding: 12,
-      backgroundColor: '#E0E0E0',
-      borderRadius: 6,
-      marginVertical: 6,
-      width: '100%',
-      alignItems: 'center',
-    },
-    cancelButton: {
-      marginTop: 10,
-    },
-    cancelText: {
-      color: 'red',
-      fontSize: 16,
-    },
     chartValue: {
       textAlign: 'center',
       fontSize: 18,
@@ -247,5 +227,78 @@ export const createStyles = (theme: {
     FsmodalOverlay: {
       flex: 1,
       backgroundColor: 'transparent',
+    },
+    modeSelectorContainer: {
+      flexDirection: 'row',
+      paddingTop: 40,
+      paddingHorizontal: 20,
+      position: 'relative',
+      paddingBottom: 20,
+    },
+    modeTouchBox: {
+      zIndex: 1,
+    },
+    modeBox: {
+      paddingVertical: 12,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    modeSelectorSlider: {
+      position: 'absolute',
+      top: '50%',
+      marginTop: 12,
+      left: 20,
+      height: 60,
+      borderRadius: 12,
+      backgroundColor: '#2280b0', // or theme.primary
+      zIndex: 0,
+    },
+    modeText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#2280b0', // or theme.primary
+    },
+    modeTextActive: {
+      color: '#fff',
+    },
+      overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+    content: {
+      width: '80%',
+      backgroundColor: theme.modal,
+      padding: 20,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 16,
+      color: theme.text,
+    },
+    rangeButton: {
+      padding: 12,
+      backgroundColor: theme.card,
+      borderRadius: 6,
+      marginVertical: 6,
+      width: '100%',
+      alignItems: 'center',
+    },
+    rangeText: {
+      fontSize: 16,
+      fontWeight: '500',
+      color: theme.text,
+    },
+    cancelButton: {
+      marginTop: 10,
+    },
+    cancelText: {
+      color: theme.danger,
+      fontSize: 16,
     },
   });

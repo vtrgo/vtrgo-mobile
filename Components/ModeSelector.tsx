@@ -3,16 +3,17 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   Animated,
   Dimensions,
 } from 'react-native';
+import { createStyles } from '../styles';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const TAB_SPACING = 10;
 const TAB_WIDTH = (SCREEN_WIDTH - 40 - TAB_SPACING) / 2;
 
-export default function ModeSelector({ selectedMode, onSelect }) {
+export default function ModeSelector({ selectedMode, onSelect, theme }) {
+  const styles = createStyles(theme);
   const translateX = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -24,13 +25,14 @@ export default function ModeSelector({ selectedMode, onSelect }) {
   }, [selectedMode]);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.modeSelectorContainer}>
       {/* Sliding background pill */}
       <Animated.View
         style={[
-          styles.slider,
+          styles.modeSelectorSlider,
           {
             transform: [{ translateX }],
+            width: TAB_WIDTH,
           },
         ]}
       />
@@ -39,11 +41,11 @@ export default function ModeSelector({ selectedMode, onSelect }) {
         return (
           <TouchableOpacity
             key={mode}
-            style={styles.touchBox}
+            style={[styles.modeTouchBox, { width: TAB_WIDTH, marginRight: TAB_SPACING }]}
             onPress={() => onSelect(mode)}
           >
-            <View style={styles.box}>
-              <Text style={[styles.text, isActive && styles.textActive]}>
+            <View style={styles.modeBox}>
+              <Text style={[styles.modeText, isActive && styles.modeTextActive]}>
                 {mode === 'live' ? 'Live Data' : 'Float Data'}
               </Text>
             </View>
@@ -53,43 +55,3 @@ export default function ModeSelector({ selectedMode, onSelect }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    paddingTop: 40,
-    paddingHorizontal: 20,
-    position: 'relative',
-    paddingBottom: 20,
-  },
-  touchBox: {
-    width: TAB_WIDTH,
-    marginRight: TAB_SPACING,
-  },
-  box: {
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1,
-  },
-  slider: {
-    position: 'absolute',
-    top: '50%',
-    marginTop: 12, // half of pill height
-    left: 20,
-    width: TAB_WIDTH,
-    height: 60,
-    backgroundColor: '#2280b0',
-    borderRadius: 12,
-    zIndex: 0,
-  },
-  text: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2280b0',
-  },
-  textActive: {
-    color: '#fff',
-  },
-});

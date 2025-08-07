@@ -1,5 +1,7 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { createStyles } from '../styles';
+import { lightTheme, darkTheme } from '../theme';
 
 const ranges = [
   { label: 'Last 60 Minutes', value: '-60m' },
@@ -7,7 +9,8 @@ const ranges = [
   { label: 'Last 12 Hours', value: '-12h' },
 ];
 
-export default function TimeRangeModal({ visible, onSelect, onCancel }) {
+export default function TimeRangeModal({ visible, onSelect, onCancel, theme }) {
+  const styles = createStyles(theme);
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
@@ -32,43 +35,3 @@ export default function TimeRangeModal({ visible, onSelect, onCancel }) {
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    width: '80%',
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  rangeButton: {
-    padding: 12,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 6,
-    marginVertical: 6,
-    width: '100%',
-    alignItems: 'center',
-  },
-  rangeText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  cancelButton: {
-    marginTop: 10,
-  },
-  cancelText: {
-    color: 'red',
-    fontSize: 16,
-  },
-});
