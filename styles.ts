@@ -301,4 +301,26 @@ export const createStyles = (theme: {
       color: theme.danger,
       fontSize: 16,
     },
+    healthSummaryRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+    },
+    specsGrid: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 8,
+    },
+    specsColumn: {
+      flex: 1,
+    },
+    specsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 8,
+      paddingRight: 16,
+    },
+    specsContainer: {
+      marginTop: 8,
+    },
   });

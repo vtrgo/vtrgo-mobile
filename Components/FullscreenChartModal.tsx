@@ -92,11 +92,6 @@ const FullscreenChartModal = ({
   const tooltipVisible =
     typeof xPos === 'number' && typeof yPos === 'number' && isActive;
 
-  console.log('📊 FullscreenChartModal Debug:');
-  console.log('🟠 xPos:', xPos, 'xValRaw:', xValRaw);
-  console.log('🟠 yPos:', yPos, 'yValRaw:', yValRaw);
-  console.log('🟠 isActive:', isActive);
-
   const timeLabel = xValRaw
     ? new Date(xValRaw).toLocaleTimeString([], {
         hour: '2-digit',
