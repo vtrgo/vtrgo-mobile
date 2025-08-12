@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { useColorScheme } from 'react-native';
+import "./global.css";
 
 import NfcScreen from './Components/NfcScreen';
 import HelpScreen from './Components/HelpScreen';
@@ -21,7 +22,7 @@ export default function App() {
       <Drawer.Navigator
         drawerContent={(props) => <DrawerContent {...props} theme={theme} />}
         screenOptions={{
-          headerStyle: { backgroundColor: theme.cardBackground },
+          headerStyle: { backgroundColor: theme.background },
           headerTintColor: theme.text,
         }}
       >

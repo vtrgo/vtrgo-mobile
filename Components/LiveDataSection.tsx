@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { createStyles } from '../styles';
+import {ProgressBar} from './ProgressBar'
 
 export default function LiveDataSection({ historicalData, onRequestField, theme }) {
   const styles = createStyles(theme);
@@ -100,6 +101,12 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
             {autoMode != null ? autoMode.toFixed(1) + '%' : '0%'}
           </Text>
         </View>
+          {autoMode != null && (
+            <ProgressBar 
+              value={autoMode}  // or autoModePercentage if already multiplied by 100
+              variant={autoMode >= 75 ? "success" : autoMode >= 50 ? "warning" : "danger"}
+            />
+          )}
 
         <View style={styles.healthSummaryRow}>
           <Text style={styles.item}>• Faults:</Text>
