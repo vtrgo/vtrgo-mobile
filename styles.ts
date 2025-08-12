@@ -112,10 +112,11 @@ export const createStyles = (theme: {
       borderColor: theme.border,
     },
     header: {
-      fontSize: 24,
+      fontSize: 28,
       fontWeight: '900',
       marginTop: 10,
       color: theme.header,
+      textAlign: "center"
     },
     item: {
       fontSize: 16,
@@ -306,6 +307,10 @@ export const createStyles = (theme: {
       justifyContent: 'space-between',
       marginBottom: 8,
     },
+    leftGroup: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
     specsGrid: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -322,5 +327,10 @@ export const createStyles = (theme: {
     },
     specsContainer: {
       marginTop: 8,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center", // keeps icon & text aligned vertically
+      justifyContent: "center"
     },
   });
