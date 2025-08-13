@@ -1,14 +1,32 @@
-export function groupByPrefix(data: Record<string, any>) {
-  const result: Record<string, Record<string, any>> = {};
+export function groupByPrefix(data: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {};
+  console.log('groupByPrefix input keys:', Object.keys(data));
+
   for (const key in data) {
-    const [prefix, rest] = key.split('.', 2);
-    if (!result[prefix]) {
-      result[prefix] = {};
+    const parts = key.split('.');
+    console.log(`Processing key: "${key}" split into parts:`, parts);
+    let currentLevel = result;
+
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (i === parts.length - 1) {
+        console.log(`Assigning value for key "${part}":`, data[key]);
+        currentLevel[part] = data[key];
+      } else {
+        if (!currentLevel[part] || typeof currentLevel[part] !== 'object') {
+          currentLevel[part] = {};
+          console.log(`Created nested object for part "${part}"`);
+        }
+        currentLevel = currentLevel[part];
+      }
     }
-    result[prefix][rest] = data[key];
   }
+
+  console.log('groupByPrefix output:', JSON.stringify(result, null, 2));
   return result;
 }
+
+
 
 export function printStructuredJson(data: Record<string, any>) {
   if (!data || typeof data !== 'object') {

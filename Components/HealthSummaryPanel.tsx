@@ -36,6 +36,22 @@ export default function HealthSummaryPanel({
   const totalParts = historicalData.float_averages.Performance?.SystemTotalParts;
   const autoMode = historicalData.boolean_percentages.SystemStatusBits?.AutoMode;
 
+  // Recursive render helper for nested fault counts
+  function renderFaultValue(value: any): React.ReactNode {
+    if (value === null || value === undefined) return 'N/A';
+
+    if (typeof value === 'object') {
+      return Object.entries(value).map(([k, v]) => (
+        <Text key={k} style={styles.item}>
+          • {k.replace(/([A-Z])/g, ' $1').trim()}: {renderFaultValue(v)}
+        </Text>
+      ));
+    }
+
+    // Primitive (number/string)
+    return value.toString();
+  }
+
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
@@ -107,15 +123,17 @@ export default function HealthSummaryPanel({
                 <Text style={styles.subheader}>
                   {group.replace(/([A-Z])/g, ' $1').trim()}
                 </Text>
-                {Object.entries(groupEntries).map(([key, value], idx) =>
-                  (
-                    <View key={key + idx} style={styles.itemRow}>
+                {typeof groupEntries === 'object' ? (
+                  Object.entries(groupEntries).map(([key, value]) => (
+                    <View key={key} style={styles.itemRow}>
                       <Text style={styles.item}>
                         • {key.replace(/([A-Z])/g, ' $1').trim()}:{" "}
-                        <Text style={styles.bold}>{value}</Text>
+                        <Text style={styles.bold}>{renderFaultValue(value)}</Text>
                       </Text>
                     </View>
-                  )
+                  ))
+                ) : (
+                  <Text style={styles.item}>{groupEntries.toString()}</Text>
                 )}
               </View>
             ))

@@ -88,8 +88,35 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
   };
 
   // Render detailed cards for boolean_percentages, float_averages
+
+  const renderNestedEntries = (sectionTitle, group, entries) => {
+    if (typeof entries !== 'object' || entries === null) {
+      console.log(`[renderNestedEntries] Primitive value for group "${group}":`, entries);
+      return renderRow(sectionTitle, group, '', entries, 0);
+    }
+
+    console.log(`[renderNestedEntries] Object entries for group "${group}":`, Object.keys(entries));
+
+    return Object.entries(entries).map(([key, value], idx) => {
+      if (typeof value === 'object' && value !== null) {
+        console.log(`[renderNestedEntries] Recursing into nested object key "${key}"`);
+        return (
+          <View key={key} style={{ marginLeft: 12 }}>
+            <Text style={styles.subheader}>{key.replace(/([A-Z])/g, ' $1').trim()}</Text>
+            {renderNestedEntries(sectionTitle, group ? `${group}.${key}` : key, value)}
+          </View>
+        );
+      } else {
+        console.log(`[renderNestedEntries] Rendering leaf key "${key}" with value:`, value);
+        return renderRow(sectionTitle, group, key, value, idx);
+      }
+    });
+  };
+
   const renderNestedDetailCard = (sectionTitle, entries) => {
     if (!entries) return null;
+
+    console.log(`[renderNestedDetailCard] Rendering section: "${sectionTitle}"`);
 
     return (
       <View key={sectionTitle} style={styles.card}>
@@ -97,28 +124,12 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
           {sectionTitle.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
         </Text>
 
-        {typeof entries === 'object' &&
-        Object.values(entries)[0] &&
-        typeof Object.values(entries)[0] === 'object' ? (
-          Object.entries(entries).map(([group, groupEntries]) => (
-            <View key={group}>
-              <Text style={styles.subheader}>
-                {group.replace(/([A-Z])/g, ' $1').trim()}
-              </Text>
-
-              {Object.entries(groupEntries).map(([key, value], idx) =>
-                renderRow(sectionTitle, group, key, value, idx)
-              )}
-            </View>
-          ))
-        ) : (
-          Object.entries(entries).map(([key, value], idx) =>
-            renderRow(sectionTitle, null, key, value, idx)
-          )
-        )}
+        {renderNestedEntries(sectionTitle, null, entries)}
       </View>
     );
   };
+
+
 
   // Render other data sections excluding all handled above
   const renderOtherDataSections = () => {
