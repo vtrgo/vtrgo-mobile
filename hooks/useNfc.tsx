@@ -1,17 +1,14 @@
-// hooks/useNfc.ts
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
-import Sound from 'react-native-sound';
 import { groupByPrefix, printStructuredJson } from '../utils/dataUtils';
 import { fakeNfcData } from '../utils/testData';
+import Sound from 'react-native-sound';
 
 Sound.setCategory('Playback');
-
 const scanBeep = new Sound('scan_beep.mp3', Sound.MAIN_BUNDLE, (err) => {
   if (err) console.warn('🔇 Failed to load sound', err);
 });
-
 const playBeep = () => {
   if (scanBeep && scanBeep.isLoaded()) {
     scanBeep.setVolume(1.0);
@@ -21,7 +18,7 @@ const playBeep = () => {
   }
 };
 
-function handleNfcError(e: any) {
+function handleNfcError(e: unknown) {
   if (e instanceof Error && e.message?.toLowerCase().includes('cancel')) {
     console.log('👋 NFC action cancelled by user.');
   } else {
@@ -30,111 +27,79 @@ function handleNfcError(e: any) {
 }
 
 export function useNfc({
-  testMode,
   onFloatScan,
   onLiveScan,
   setPromptVisible,
   setFormattedFloatData,
   setGraphTitle,
+  testMode = false,
 }: {
-  testMode: boolean;
   onFloatScan: (data: any) => void;
   onLiveScan: (data: any) => void;
-  setPromptVisible: (visible: boolean) => void;
-  setFormattedFloatData: (data: any) => void;
+  setPromptVisible: (v: boolean) => void;
+  setFormattedFloatData: (v: any) => void;
   setGraphTitle: (title: string) => void;
+  testMode?: boolean;
 }) {
-  const cancelTech = useCallback(async () => {
+  const cancelTech = async () => {
     try {
       await NfcManager.cancelTechnologyRequest();
     } catch {}
-  }, []);
+  };
+
+  const processTagData = (jsonPayload: any) => {
+    // Keep the same grouping logic as live mode
+    const groupedData = { ...jsonPayload };
+    if (groupedData.boolean_percentages) {
+      groupedData.boolean_percentages = groupByPrefix(groupedData.boolean_percentages);
+    }
+    if (groupedData.fault_counts) {
+      groupedData.fault_counts = groupByPrefix(groupedData.fault_counts);
+    }
+    if (groupedData.float_averages) {
+      const nestedFloats: Record<string, any> = {};
+      Object.entries(groupedData.float_averages).forEach(([key, value]) => {
+        const parts = key.split('.');
+        if (parts.length < 3) return;
+        const [, group, field] = parts;
+        if (!nestedFloats[group]) nestedFloats[group] = {};
+        nestedFloats[group][field] = value;
+      });
+      groupedData.float_averages = nestedFloats;
+    }
+    return groupedData;
+  };
 
   const readNfc = useCallback(async () => {
-    if (testMode) {
-      console.log('🔹 Test mode active: returning fake data');
-      onLiveScan(fakeNfcData);
-
-      // Format float_averages for chart
-      const expanded = [];
-      Object.entries(fakeNfcData.float_averages).forEach(([key, value]) => {
-        const parts = key.split('.');
-        if (parts.length !== 3) return;
-        const [, group, field] = parts;
-        expanded.push({
-          group,
-          field,
-          value,
-          timestamp: Date.now(),
-        });
-      });
-      setFormattedFloatData(expanded);
-      return;
-    }
-
     setPromptVisible(true);
+
     try {
-      await NfcManager.requestTechnology(NfcTech.Ndef);
-      const tag = await NfcManager.getTag();
-      if (!tag.ndefMessage) return;
+      let jsonPayload: any;
 
-      const payload = new Uint8Array(tag.ndefMessage[0].payload);
-      const jsonString = String.fromCharCode(...payload);
+      if (testMode) {
+        console.log('🔹 Using test NFC data');
+        jsonPayload = fakeNfcData;
+      } else {
+        await NfcManager.requestTechnology(NfcTech.Ndef);
+        const tag = await NfcManager.getTag();
+        if (!tag.ndefMessage) return;
 
-      let jsonPayload = null;
-      try {
-        jsonPayload = JSON.parse(jsonString);
-      } catch (err) {
-        console.error('❌ Failed to parse JSON:', err.message);
-        Alert.alert(
-          'Data Error',
-          'Received incomplete or corrupted data. Please rescan.'
-        );
-        return;
+        const payload = new Uint8Array(tag.ndefMessage[0].payload);
+        const jsonString = String.fromCharCode(...payload);
+
+        try {
+          jsonPayload = JSON.parse(jsonString);
+        } catch (err) {
+          console.error('❌ Failed to parse JSON:', err);
+          Alert.alert('Data Error', 'Received incomplete or corrupted data. Rescan NFC data.');
+          return;
+        }
       }
 
       printStructuredJson(jsonPayload);
       playBeep();
 
-      const groupedData = { ...jsonPayload };
-
-      // Boolean percentages
-      if (groupedData.boolean_percentages) {
-        groupedData.boolean_percentages = groupByPrefix(groupedData.boolean_percentages);
-      }
-
-      // Fault counts
-      if (groupedData.fault_counts) {
-        groupedData.fault_counts = groupByPrefix(groupedData.fault_counts);
-      }
-
-      // Float averages
-      if (groupedData.float_averages) {
-        const nestedFloats: Record<string, Record<string, number>> = {};
-        Object.entries(groupedData.float_averages).forEach(([key, value]) => {
-          const parts = key.split('.');
-          if (parts.length !== 3) return;
-          const [, group, field] = parts;
-          if (!nestedFloats[group]) nestedFloats[group] = {};
-          nestedFloats[group][field] = value;
-        });
-        groupedData.float_averages = nestedFloats;
-
-        // Format for chart/list
-        const expanded = [];
-        Object.entries(nestedFloats).forEach(([group, fields]) => {
-          Object.entries(fields).forEach(([field, value]) => {
-            expanded.push({
-              group,
-              field,
-              value,
-              timestamp: Date.now(),
-            });
-          });
-        });
-        setFormattedFloatData(expanded);
-      }
-
+      const groupedData = processTagData(jsonPayload);
       onLiveScan(groupedData);
     } catch (e) {
       handleNfcError(e);
@@ -142,66 +107,61 @@ export function useNfc({
       setPromptVisible(false);
       cancelTech();
     }
-  }, [testMode, onLiveScan, setPromptVisible, setFormattedFloatData, cancelTech]);
+  }, [onLiveScan, setPromptVisible, testMode]);
 
   const scanFloatTab = useCallback(async () => {
-    if (testMode) {
-      console.log('🔹 Test mode: returning fake float tab data');
-      const expanded = [];
-      Object.entries(fakeNfcData.float_averages).forEach(([key, value]) => {
-        const parts = key.split('.');
-        if (parts.length !== 3) return;
-        const [, group, field] = parts;
-        expanded.push({
-          group,
-          field,
-          value,
-          timestamp: Date.now(),
-        });
-      });
-      onFloatScan(expanded);
-      setFormattedFloatData(expanded);
-      return;
-    }
-
     setPromptVisible(true);
     try {
-      await NfcManager.requestTechnology(NfcTech.Ndef);
-      const tag = await NfcManager.getTag();
-      if (!tag.ndefMessage) return;
+      let parsedData: any;
 
-      const payload = new Uint8Array(tag.ndefMessage[0].payload);
-      const jsonString = String.fromCharCode(...payload);
-      const parsedData = JSON.parse(jsonString);
+      if (testMode) {
+        console.log('🔹 Using test float data');
+        parsedData = fakeNfcData; // use the same float averages from fakeNfcData
+      } else {
+        await NfcManager.requestTechnology(NfcTech.Ndef);
+        const tag = await NfcManager.getTag();
+        if (!tag.ndefMessage) return;
 
-      if (!parsedData.start || !parsedData.interval || !Array.isArray(parsedData.values)) {
-        throw new Error('Invalid float format');
+        const payload = new Uint8Array(tag.ndefMessage[0].payload);
+        const jsonString = String.fromCharCode(...payload);
+
+        parsedData = JSON.parse(jsonString);
       }
 
       playBeep();
 
-      const startTime = new Date(parsedData.start).getTime();
-      const intervalMs = parsedData.interval * 1000;
+      // Convert float averages into time series only if available
+      if (parsedData.float_averages) {
+        const startTime = Date.now();
+        const intervalMs = 1000;
+        const expanded = Object.entries(parsedData.float_averages).flatMap(([k, group]) =>
+          Object.entries(group).map(([field, value], i) => ({
+            time: new Date(startTime + i * intervalMs).toISOString(),
+            value,
+          }))
+        );
 
-      const expanded = parsedData.values.map((value: number, i: number) => ({
-        time: new Date(startTime + i * intervalMs).toISOString(),
-        value,
-      }));
-
-      onFloatScan(expanded);
-      setFormattedFloatData(expanded.map(d => ({ ...d, timestamp: new Date(d.time).getTime() })));
+        onFloatScan(expanded);
+        setFormattedFloatData(expanded.map(d => ({ ...d, timestamp: new Date(d.time).getTime() })));
+      }
     } catch (e) {
       handleNfcError(e);
     } finally {
       setPromptVisible(false);
       cancelTech();
     }
-  }, [testMode, onFloatScan, setFormattedFloatData, setPromptVisible, cancelTech]);
+  }, [onFloatScan, setFormattedFloatData, setPromptVisible, testMode]);
 
   const writeNfcFloatRequest = useCallback(
     async (fieldName: string, range = '-30m') => {
       const fullFieldName = fieldName.startsWith('Floats.') ? fieldName : `Floats.${fieldName}`;
-      const payload = { cmd: 'float_range', field: fullFieldName, start: range, stop: 'now()' };
+
+      const payload = {
+        cmd: 'float_range',
+        field: fullFieldName,
+        start: range,
+        stop: 'now()',
+      };
 
       setGraphTitle(fullFieldName);
 
@@ -219,8 +179,12 @@ export function useNfc({
         cancelTech();
       }
     },
-    [setGraphTitle, setPromptVisible, cancelTech]
+    [setGraphTitle, setPromptVisible]
   );
 
-  return { readNfc, scanFloatTab, writeNfcFloatRequest, cancelTech };
+  return {
+    readNfc,
+    scanFloatTab,
+    writeNfcFloatRequest,
+  };
 }
