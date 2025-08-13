@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 import { groupByPrefix, printStructuredJson } from '../utils/dataUtils';
-import { fakeNfcData } from '../utils/testData';
+import { fakeNfcData, fakeNfcFloatData } from '../utils/testData';
 import Sound from 'react-native-sound';
 import { useTestMode } from '../context/testModeContext'; // ✅ now from context
 
@@ -109,47 +109,71 @@ export function useNfc({
     }
   }, [onLiveScan, setPromptVisible, testMode]); // ✅ testMode in deps
 
-  const scanFloatTab = useCallback(async () => {
-    setPromptVisible(true);
-    try {
-      let parsedData: any;
+const scanFloatTab = useCallback(async () => {
+  setPromptVisible(true);
 
-      if (testMode) {
-        console.log('🔹 Using test float data');
-        parsedData = fakeNfcData;
-      } else {
-        await NfcManager.requestTechnology(NfcTech.Ndef);
-        const tag = await NfcManager.getTag();
-        if (!tag.ndefMessage) return;
+  try {
+    let jsonPayload: any;
 
-        const payload = new Uint8Array(tag.ndefMessage[0].payload);
-        const jsonString = String.fromCharCode(...payload);
+    if (testMode) {
+      console.log('🔹 Using test NFC float data');
+      jsonPayload = fakeNfcFloatData;
 
-        parsedData = JSON.parse(jsonString);
+      console.log('🔹 jsonPayload:', jsonPayload);
+      console.log('🔹 typeof jsonPayload.start:', typeof jsonPayload.start);
+      console.log('🔹 typeof jsonPayload.interval:', typeof jsonPayload.interval);
+      console.log('🔹 values length:', jsonPayload.values?.length);
+      console.log('🔹 first 5 values:', jsonPayload.values?.slice(0, 5));
+    } else {
+      await NfcManager.requestTechnology(NfcTech.Ndef);
+      const tag = await NfcManager.getTag();
+      if (!tag.ndefMessage) return;
+
+      const payload = new Uint8Array(tag.ndefMessage[0].payload);
+      const jsonString = String.fromCharCode(...payload);
+
+      try {
+        jsonPayload = JSON.parse(jsonString);
+        console.log('🔹 Live NFC jsonPayload:', jsonPayload);
+      } catch (err) {
+        console.error('❌ Failed to parse JSON:', err);
+        Alert.alert('Data Error', 'Received incomplete or corrupted float data. Rescan NFC data.');
+        return;
       }
-
-      playBeep();
-
-      if (parsedData.float_averages) {
-        const startTime = Date.now();
-        const intervalMs = 1000;
-        const expanded = Object.entries(parsedData.float_averages).flatMap(([k, group]) =>
-          Object.entries(group).map(([field, value], i) => ({
-            time: new Date(startTime + i * intervalMs).toISOString(),
-            value,
-          }))
-        );
-
-        onFloatScan(expanded);
-        setFormattedFloatData(expanded.map(d => ({ ...d, timestamp: new Date(d.time).getTime() })));
-      }
-    } catch (e) {
-      handleNfcError(e);
-    } finally {
-      setPromptVisible(false);
-      cancelTech();
     }
-  }, [onFloatScan, setFormattedFloatData, setPromptVisible, testMode]); // ✅ testMode in deps
+
+    // Validate structure
+    if (!jsonPayload.start || !jsonPayload.interval || !Array.isArray(jsonPayload.values)) {
+      console.error('❌ Invalid float format:', jsonPayload);
+      throw new Error('Invalid float format');
+    }
+
+    playBeep();
+
+    const startTime = new Date(jsonPayload.start).getTime();
+    const intervalMs = jsonPayload.interval * 1000;
+    const expanded = jsonPayload.values.map((value, i) => ({
+      time: new Date(startTime + i * intervalMs).toISOString(),
+      value,
+    }));
+
+    console.log('🔹 expanded length:', expanded.length);
+    console.log('🔹 first 5 expanded:', expanded.slice(0, 5));
+
+    onFloatScan(expanded);
+    setFormattedFloatData(
+      expanded.map(d => ({ ...d, timestamp: new Date(d.time).getTime() }))
+    );
+  } catch (e) {
+    console.error('❌ scanFloatTab error:', e);
+    handleNfcError(e);
+  } finally {
+    setPromptVisible(false);
+    cancelTech();
+  }
+}, [onFloatScan, setFormattedFloatData, setPromptVisible, testMode]);
+
+
 
   const writeNfcFloatRequest = useCallback(
     async (fieldName: string, range = '-30m') => {
