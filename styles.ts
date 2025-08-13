@@ -198,11 +198,20 @@ export const createStyles = (theme: {
       color: theme.text,
     },
     subheader: {
-      fontSize: 18,
+      fontSize: 22,
       fontWeight: '600',
       marginTop: 15,
       marginBottom: 5,
       color: theme.fadedText,
+      fontWeight: 'bold',
+    },
+    subSubheader: {
+      fontSize: 20,
+      color: theme.secondaryText,
+      fontWeight: '500',
+      marginTop: 2,
+      marginBottom: 2,
+      fontWeight: 'bold',
     },
     fullscreenButton: {
       backgroundColor: '#007bff',
