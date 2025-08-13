@@ -4,6 +4,7 @@ import NfcManager from 'react-native-nfc-manager';
 import { useChartPressState, useChartTransformState } from 'victory-native';
 import { useFont } from "@shopify/react-native-skia";
 import { useDerivedValue } from "react-native-reanimated";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import ModeSelector from './ModeSelector';
 import FloatChart from './FloatChart';
@@ -12,6 +13,7 @@ import NfcPromptModal from './NfcPromptModal';
 import TimeRangeModal from './TimeRangeModal';
 import LiveDataSection from './LiveDataSection';
 import FullscreenChartModal from './FullscreenChartModal';
+import SettingsScreen from './SettingsScreen';
 import { useNfc } from '../hooks/useNfc';
 import { createStyles } from '../styles';
 
@@ -32,7 +34,16 @@ export default function NfcScreen({ theme }) {
   const [tooltipText, setTooltipText] = useState('');
   const [showModal, setShowModal] = useState(false);
   const styles = createStyles(theme);
+  const [isTestMode, setIsTestMode] = useState(false)
 
+    useEffect(() => {
+      AsyncStorage.getItem('testModeEnabled').then((val) => {
+        const isTest = val === 'true';
+        setIsTestMode(val === 'true');
+        console.log('🔹 Test mode read from AsyncStorage:', isTest);
+      });
+    }, []);
+  
   const [historicalData, setHistoricalData] = useState({
     boolean_percentages: {},
     fault_counts: {},
@@ -68,12 +79,14 @@ export default function NfcScreen({ theme }) {
     return () => clearInterval(id);
   }, []);
 
+  console.log('🔹 Passing testMode to useNfc:', isTestMode);
   const { readNfc, scanFloatTab, writeNfcFloatRequest } = useNfc({
     onFloatScan: setFloatData,
     onLiveScan: setHistoricalData,
     setFormattedFloatData,
     setGraphTitle,
-    setPromptVisible: setNfcPromptVisible
+    setPromptVisible: setNfcPromptVisible,
+    testMode: isTestMode,
   });
 
   return (

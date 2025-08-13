@@ -73,7 +73,7 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
         </Text>
         <Text style={styles.subheader}>Serial #{historicalData.project_meta['Project Number']}</Text>
 
-        <Text style={[styles.subheader, { marginTop: 16 }]}>ELECTRICAL SPECIFICATIONS</Text>
+        <Text style={[styles.subheader, { marginTop: 16 }]}>ELECTRICAL SPECIFICATIONS:</Text>
 
         <View style={styles.specsContainer}>
           {['Input Voltage', 'Input Phase', 'Input Frequency', 'Input Current', 'Control Voltage', 'Output Power', 'Enclosure Rating'].map(key => (
