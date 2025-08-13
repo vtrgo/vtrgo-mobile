@@ -4,6 +4,7 @@ import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 import { groupByPrefix, printStructuredJson } from '../utils/dataUtils';
 import { fakeNfcData } from '../utils/testData';
 import Sound from 'react-native-sound';
+import { useTestMode } from '../context/testModeContext'; // ✅ now from context
 
 Sound.setCategory('Playback');
 const scanBeep = new Sound('scan_beep.mp3', Sound.MAIN_BUNDLE, (err) => {
@@ -32,15 +33,15 @@ export function useNfc({
   setPromptVisible,
   setFormattedFloatData,
   setGraphTitle,
-  testMode = false,
 }: {
   onFloatScan: (data: any) => void;
   onLiveScan: (data: any) => void;
   setPromptVisible: (v: boolean) => void;
   setFormattedFloatData: (v: any) => void;
   setGraphTitle: (title: string) => void;
-  testMode?: boolean;
 }) {
+  const { testMode } = useTestMode(); // ✅ always up-to-date
+
   const cancelTech = async () => {
     try {
       await NfcManager.cancelTechnologyRequest();
@@ -48,7 +49,6 @@ export function useNfc({
   };
 
   const processTagData = (jsonPayload: any) => {
-    // Keep the same grouping logic as live mode
     const groupedData = { ...jsonPayload };
     if (groupedData.boolean_percentages) {
       groupedData.boolean_percentages = groupByPrefix(groupedData.boolean_percentages);
@@ -107,7 +107,7 @@ export function useNfc({
       setPromptVisible(false);
       cancelTech();
     }
-  }, [onLiveScan, setPromptVisible, testMode]);
+  }, [onLiveScan, setPromptVisible, testMode]); // ✅ testMode in deps
 
   const scanFloatTab = useCallback(async () => {
     setPromptVisible(true);
@@ -116,7 +116,7 @@ export function useNfc({
 
       if (testMode) {
         console.log('🔹 Using test float data');
-        parsedData = fakeNfcData; // use the same float averages from fakeNfcData
+        parsedData = fakeNfcData;
       } else {
         await NfcManager.requestTechnology(NfcTech.Ndef);
         const tag = await NfcManager.getTag();
@@ -130,7 +130,6 @@ export function useNfc({
 
       playBeep();
 
-      // Convert float averages into time series only if available
       if (parsedData.float_averages) {
         const startTime = Date.now();
         const intervalMs = 1000;
@@ -150,7 +149,7 @@ export function useNfc({
       setPromptVisible(false);
       cancelTech();
     }
-  }, [onFloatScan, setFormattedFloatData, setPromptVisible, testMode]);
+  }, [onFloatScan, setFormattedFloatData, setPromptVisible, testMode]); // ✅ testMode in deps
 
   const writeNfcFloatRequest = useCallback(
     async (fieldName: string, range = '-30m') => {

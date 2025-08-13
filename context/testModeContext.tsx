@@ -1,14 +1,11 @@
-import React, { createContext, useState, useEffect } from 'react';
+// TestModeContext.tsx
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TEST_MODE_KEY = 'testModeEnabled';
+const TestModeContext = createContext({ testMode: false, setTestMode: (v: boolean) => {} });
 
-export const TestModeContext = createContext({
-  testMode: false,
-  setTestMode: (val: boolean) => {},
-});
-
-export const TestModeProvider = ({ children }) => {
+export const TestModeProvider = ({ children }: { children: React.ReactNode }) => {
   const [testMode, setTestModeState] = useState(false);
 
   useEffect(() => {
@@ -17,9 +14,9 @@ export const TestModeProvider = ({ children }) => {
     });
   }, []);
 
-  const setTestMode = async (val: boolean) => {
-    setTestModeState(val);
-    await AsyncStorage.setItem(TEST_MODE_KEY, val.toString());
+  const setTestMode = (v: boolean) => {
+    setTestModeState(v);
+    AsyncStorage.setItem(TEST_MODE_KEY, v.toString());
   };
 
   return (
@@ -28,3 +25,5 @@ export const TestModeProvider = ({ children }) => {
     </TestModeContext.Provider>
   );
 };
+
+export const useTestMode = () => useContext(TestModeContext);
