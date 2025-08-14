@@ -4,9 +4,9 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { useColorScheme } from 'react-native';
 import "./global.css";
 
-import NfcScreen from './Components/NfcScreen';
-import HelpScreen from './Components/HelpScreen';
-import SettingsScreen from './Components/SettingsScreen';
+import NfcScreen from './screens/NfcScreen'; 
+import HelpScreen from './screens/HelpScreen';
+import SettingsScreen from './screens/SettingsScreen';
 import DrawerContent from './Components/DrawerContent';
 import { TestModeProvider } from './context/testModeContext';
 
@@ -36,7 +36,7 @@ export default function App() {
           </Drawer.Screen>
           <Drawer.Screen name="Settings" options={{ title: 'Settings' }}>
             {(props) => <SettingsScreen {...props} theme={theme} />}
-          </Drawer.Screen>
+          </Drawer.Screen> 
         </Drawer.Navigator>
       </NavigationContainer>
 
