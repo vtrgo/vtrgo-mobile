@@ -16,6 +16,7 @@ import FullscreenChartModal from '../Components/FullscreenChartModal';
 import SettingsScreen from './SettingsScreen';
 import { useNfc } from '../hooks/useNfc';
 import { createStyles } from '../styles';
+import { useHistoryData } from '../context/HistoryContext';
 
 NfcManager.start();
 
@@ -34,13 +35,30 @@ export default function NfcScreen({ theme }) {
   const [tooltipText, setTooltipText] = useState('');
   const [showModal, setShowModal] = useState(false);
   const styles = createStyles(theme);
-  const [isTestMode, setIsTestMode] = useState(false)
+  const [isTestMode, setIsTestMode] = useState(false);
+  const { saveToHistory, currentData, setCurrentData } = useHistoryData();
+
+  const saveCurrentData = () => {
+    const entry = {
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      floatData,
+      historicalData
+    };
+    saveToHistory(entry); // updates context + AsyncStorage
+  };
+  useEffect(() => {
+    if (currentData) {
+      setFloatData(currentData.floatData || []);
+      setHistoricalData(currentData.historicalData || {});
+    }
+  }, [currentData]);
+ 
 
     useEffect(() => {
       AsyncStorage.getItem('testModeEnabled').then((val) => {
         const isTest = val === 'true';
         setIsTestMode(val === 'true');
-        console.log('🔹 Test mode read from AsyncStorage:', isTest);
       });
     }, []);
   
@@ -152,6 +170,22 @@ export default function NfcScreen({ theme }) {
             />
           </View>
         )}
+        <TouchableOpacity
+          style={styles.scanButton}
+          onPress={() => {
+            console.log('🔹 Saving snapshot, historicalData:', historicalData);
+
+            const projectName = historicalData?.project_meta?.['Project Name'];
+            console.log('🔹 Extracted projectName:', projectName);
+
+            const snapshot = { floatData, historicalData, projectName };
+            console.log('🔹 Snapshot to save:', snapshot);
+
+            saveToHistory(snapshot);
+          }}
+        >
+          <Text style={styles.scanButtonText}>💾 Save to History</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       <FullscreenChartModal

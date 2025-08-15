@@ -123,7 +123,7 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
   const renderNestedDetailCard = (sectionTitle, entries) => {
     if (!entries) return null;
 
-    console.log(`[renderNestedDetailCard] Rendering section: "${sectionTitle}"`);
+    // console.log(`[renderNestedDetailCard] Rendering section: "${sectionTitle}"`);
 
     return (
       <View key={sectionTitle} style={styles.card}>

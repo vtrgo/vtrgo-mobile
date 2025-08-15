@@ -25,6 +25,11 @@ export default function DrawerContent(props) {
         labelStyle={{ color: theme.text }}
         onPress={() => props.navigation.navigate('Settings')}
       />
+      <DrawerItem
+        label="History"
+        labelStyle={{ color: theme.text }}
+        onPress={() => props.navigation.navigate('History')}
+      />
     </DrawerContentScrollView>
   );
 }
