@@ -39,9 +39,9 @@ export const HistoryProvider = ({ children }) => {
   };
 
 
-  const deleteHistoryEntry = async (id) => {
+  const deleteHistoryEntry = async (timestamp) => {
     try {
-      const updated = history.filter(item => item.id !== id);
+      const updated = history.filter(item => item.timestamp !== timestamp);
       setHistory(updated);
       await AsyncStorage.setItem('history', JSON.stringify(updated));
     } catch (error) {
@@ -49,19 +49,20 @@ export const HistoryProvider = ({ children }) => {
     }
   };
 
+  const loadHistoryEntry = (timestamp) => {
+    const entry = history.find(item => item.timestamp === timestamp);
+    if (entry) {
+      setCurrentData(entry); // <- you were using entry.data before
+    }
+  };
+
+
   const clearHistory = async () => {
     try {
       setHistory([]);
       await AsyncStorage.removeItem('history');
     } catch (error) {
       console.error('[HistoryContext] Failed to clear history:', error);
-    }
-  };
-
-  const loadHistoryEntry = (id) => {
-    const entry = history.find(item => item.id === id);
-    if (entry) {
-      setCurrentData(entry.data); // set snapshot
     }
   };
 
