@@ -51,8 +51,19 @@ export default function NfcScreen({ theme }) {
     if (currentData) {
       setFloatData(currentData.floatData || []);
       setHistoricalData(currentData.historicalData || {});
+      setGraphTitle(currentData.projectName || '');
     }
   }, [currentData]);
+
+  
+  useEffect(() => {
+    const formatted = floatData.map(d => ({
+      timestamp: d.timestamp || new Date().toISOString(),
+      value: d.value ?? 0,
+    }));
+    setFormattedFloatData(formatted);
+  }, [floatData]);
+
  
 
     useEffect(() => {

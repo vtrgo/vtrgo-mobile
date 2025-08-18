@@ -8,7 +8,7 @@ export function ToolTip({ x, y }) {
 }
 
 export default function FloatChart({ formattedFloatData, graphTitle, font, ttvalue, state, isActive, transformState }) {
-  const yMax = Math.max(...formattedFloatData.map(d => d.value));
+  const yMax = Math.max(...formattedFloatData.map(d => d.value), 1);
   const paddedYMax = yMax * 1.1; // Add 10% headroom
 
   return (
