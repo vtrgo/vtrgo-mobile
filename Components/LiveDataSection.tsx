@@ -9,7 +9,7 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
   const styles = createStyles(theme);
   if (!historicalData) return null;
 
-  // Recursive sum helper for faults (you can move this to a utils file)
+  // Recursive sum helper for faults
   function sumNestedValues(obj) {
     if (typeof obj !== 'object' || obj === null) return 0;
     return Object.values(obj).reduce((sum, val) => {
@@ -18,32 +18,30 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
     }, 0);
   }
 
-  // Format value (you can customize if needed)
+  // Format values
   const formatValue = (sectionTitle, key, value) => {
-    if (typeof value === 'number') {
-      value = value.toFixed(2);
-    }
-    if (key.toLowerCase().includes('temperature')) {
-      return `${value} °C`;
-    }
-    if (key.toLowerCase().includes('voltage')) {
-      return `${value}`; // append " V" if needed
-    }
-    if (key.toLowerCase().includes('current')) {
-      return `${value}`; // append " A" if needed
-    }
-    if (sectionTitle === 'boolean_percentages') {
-      return `${value}%`;
-    }
+    if (typeof value === 'number') value = value.toFixed(2);
+    if (key.toLowerCase().includes('temperature')) return `${value} °C`;
+    if (key.toLowerCase().includes('voltage')) return `${value}`;
+    if (key.toLowerCase().includes('current')) return `${value}`;
+    if (sectionTitle === 'boolean_percentages') return `${value}%`;
     return value;
   };
 
-  // Render key/value rows for nested data sections
+  const formatSystemStatusValue = (value) => {
+    return value ? '✅ OK' : '❌ Fault';
+  };
+
+  const getStatusColor = (value) => (value ? 'green' : 'red');
+
+  // Render key/value rows
   const renderRow = (sectionTitle, group, key, value, idx) => (
     <View key={key + idx} style={styles.itemRow}>
       <Text style={styles.item}>
         • {key.replace(/([A-Z])/g, ' $1').trim()}:{" "}
-        <Text style={styles.bold}>{formatValue(sectionTitle, key, value)}</Text>
+        <Text style={[styles.bold, sectionTitle === 'system_status' && { color: getStatusColor(value) }]}>
+          {sectionTitle === 'system_status' ? formatSystemStatusValue(value) : formatValue(sectionTitle, key, value)}
+        </Text>
       </Text>
 
       {sectionTitle === 'float_averages' && group && (
@@ -57,10 +55,9 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
     </View>
   );
 
-  // Render Feeder Details Card
+  // Feeder Details Card
   const renderFeederDetails = () => {
     if (!historicalData.project_meta) return null;
-
     return (
       <View style={styles.card}>
         <View style={styles.headerRow}>
@@ -74,7 +71,6 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
         <Text style={styles.subheader}>Serial #{historicalData.project_meta['Project Number']}</Text>
 
         <Text style={[styles.subheader, { marginTop: 16 }]}>ELECTRICAL SPECIFICATIONS:</Text>
-
         <View style={styles.specsContainer}>
           {['Input Voltage', 'Input Phase', 'Input Frequency', 'Input Current', 'Control Voltage', 'Output Power', 'Enclosure Rating'].map(key => (
             <View key={key} style={styles.specsRow}>
@@ -87,29 +83,17 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
     );
   };
 
-  // Render detailed cards for boolean_percentages, float_averages
-
+  // Render nested entries recursively
   const renderNestedEntries = (sectionTitle, group, entries, depth = 0) => {
-    if (typeof entries !== 'object' || entries === null) {
-      return renderRow(sectionTitle, group, '', entries, 0);
-    }
-
+    if (typeof entries !== 'object' || entries === null) return renderRow(sectionTitle, group, '', entries, 0);
     return Object.entries(entries).map(([key, value], idx) => {
       if (typeof value === 'object' && value !== null) {
         return (
-          <View
-            key={key}
-            style={{ marginLeft: depth === 0 ? 12 : depth === 1 ? 24 : depth * 16 }}
-          >
+          <View key={key} style={{ marginLeft: depth === 0 ? 12 : depth === 1 ? 24 : depth * 16 }}>
             <Text style={depth === 0 ? styles.subheader : styles.subSubheader}>
               {key.replace(/([A-Z])/g, ' $1').trim()}
             </Text>
-            {renderNestedEntries(
-              sectionTitle,
-              group ? `${group}.${key}` : key,
-              value,
-              depth + 1
-            )}
+            {renderNestedEntries(sectionTitle, group ? `${group}.${key}` : key, value, depth + 1)}
           </View>
         );
       } else {
@@ -118,53 +102,52 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
     });
   };
 
-
-
+  // Nested detail card
   const renderNestedDetailCard = (sectionTitle, entries) => {
     if (!entries) return null;
-
-    // console.log(`[renderNestedDetailCard] Rendering section: "${sectionTitle}"`);
-
     return (
       <View key={sectionTitle} style={styles.card}>
         <Text style={styles.header}>
           {sectionTitle.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
         </Text>
-
         {renderNestedEntries(sectionTitle, null, entries)}
       </View>
     );
   };
 
+  // System Status Card
+  const renderSystemStatusCard = (systemStatus) => {
+    if (!systemStatus) return null;
+    return (
+      <View key="system_status" style={styles.card}>
+        <Text style={styles.header}>System Status</Text>
+        {Object.entries(systemStatus).map(([key, value]) => (
+          <View key={key} style={styles.itemRow}>
+            <Text style={styles.item}>
+              • {key.replace(/([A-Z])/g, ' $1').trim()}:{" "}
+              <Text style={[styles.bold, { color: getStatusColor(value) }]}>
+                {formatSystemStatusValue(value)}
+              </Text>
+            </Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
 
-
-  // Render other data sections excluding all handled above
+  // Render other sections
   const renderOtherDataSections = () => {
     return Object.entries(historicalData)
-      .filter(
-        ([sectionKey]) =>
-          ![
-            'project_meta',
-            'float_averages',
-            'boolean_percentages',
-            'fault_counts',
-          ].includes(sectionKey)
-      )
+      .filter(([sectionKey]) => !['project_meta','float_averages','boolean_percentages','fault_counts','system_status'].includes(sectionKey))
       .map(([sectionTitle, entries]) => (
         <View key={sectionTitle} style={styles.card}>
           <Text style={styles.header}>
             {sectionTitle.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
           </Text>
-
-          {typeof entries === 'object' &&
-          Object.values(entries)[0] &&
-          typeof Object.values(entries)[0] === 'object' ? (
+          {typeof entries === 'object' && Object.values(entries)[0] && typeof Object.values(entries)[0] === 'object' ? (
             Object.entries(entries).map(([group, groupEntries]) => (
               <View key={group}>
-                <Text style={styles.subheader}>
-                  {group.replace(/([A-Z])/g, ' $1').trim()}
-                </Text>
-
+                <Text style={styles.subheader}>{group.replace(/([A-Z])/g, ' $1').trim()}</Text>
                 {Object.entries(groupEntries).map(([key, value], idx) =>
                   renderRow(sectionTitle, group, key, value, idx)
                 )}
@@ -182,7 +165,6 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
   return (
     <>
       {renderFeederDetails()}
-
       <HealthSummaryPanel
         historicalData={historicalData}
         theme={theme}
@@ -190,7 +172,6 @@ export default function LiveDataSection({ historicalData, onRequestField, theme 
         sumNestedValues={sumNestedValues}
         ProgressBar={ProgressBar}
       />
-
       {renderNestedDetailCard('boolean_percentages', historicalData.boolean_percentages)}
       {renderNestedDetailCard('float_averages', historicalData.float_averages)}
       {renderOtherDataSections()}
