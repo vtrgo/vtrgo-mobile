@@ -342,4 +342,28 @@ export const createStyles = (theme: {
       alignItems: "center", // keeps icon & text aligned vertically
       justifyContent: "center"
     },
+    metricCard: {
+      backgroundColor: '#fff',
+      padding: 12,
+      borderRadius: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3, // Android shadow
+      alignItems: 'center',
+    },
+
+    metricLabel: {
+      fontSize: 14,
+      color: '#555',
+      marginBottom: 4,
+    },
+
+    metricValue: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#222',
+    },
+
   });

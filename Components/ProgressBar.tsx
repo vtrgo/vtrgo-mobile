@@ -1,55 +1,60 @@
-import React, { useEffect } from 'react';
-import { View, Text } from 'react-native';
+import React from "react";
+import { View } from "react-native";
 
 interface ProgressBarProps {
-  value: number; // 0 to 100
-  variant?: 'success' | 'warning' | 'default';
+  value?: number | null; // 0–100
+  variant?: "default" | "success" | "warning" | "destructive";
 }
 
-export function ProgressBar({ value = 0, variant = 'default' }: ProgressBarProps) {
-  const clamped = Math.min(Math.max(value, 0), 100);
+export function ProgressBar({ value = 0, variant = "default" }: ProgressBarProps) {
+  const clamped = Math.min(Math.max(value ?? 0, 0), 100);
 
-  // Determine fill color based on variant (or value)
-  let fillColor;
-  switch (variant) {
-    case 'success':
-      fillColor = '#22c55e'; // green-400
-      break;
-    case 'warning':
-      fillColor = '#facc15'; // yellow-400
-      break;
-    case 'danger':
-      fillColor = '#ef4444'; // red-500
-      break;
-    default:
-      fillColor = '#3b82f6'; // blue-500
-  }
+  // Track colors (background)
+  const trackColors: Record<string, string> = {
+    default: "#E5E7EB",     // gray-200
+    success: "#bbf7d0",     // green-200
+    warning: "#fde68a",     // yellow-200
+    destructive: "#fecaca", // red-200
+  };
 
-  // Determine background (track) color based on progress value
-  let backgroundColor;
-  if (clamped < 30) backgroundColor = '#fdb8b8ff'; // light red (red-100)
-  else if (clamped < 75) backgroundColor = '#f8e7a3ff'; // light yellow (yellow-100)
-  else backgroundColor = '#c4fcc7ff'; // light green (green-100)
+  // Indicator colors (mimic gradient with two shades)
+  const indicatorColors: Record<string, { light: string; dark: string }> = {
+    default: { light: "#60a5fa", dark: "#2563eb" },     // blue-400 → blue-600
+    success: { light: "#4ade80", dark: "#16a34a" },     // green-400 → green-600
+    warning: { light: "#facc15", dark: "#ca8a04" },     // yellow-400 → yellow-700
+    destructive: { light: "#f87171", dark: "#b91c1c" }, // red-400 → red-700
+  };
+
+  const colors = indicatorColors[variant] ?? indicatorColors["default"];
+  const track = trackColors[variant] ?? trackColors["default"];
 
   return (
     <View
       style={{
-        width: '100%',
-        height: 20,
-        backgroundColor,
-        borderRadius: 10,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: '#999',
-        marginVertical: 10,
+        width: "100%",
+        height: 16, // h-4
+        borderRadius: 9999,
+        overflow: "hidden",
+        backgroundColor: track,
       }}
     >
       <View
         style={{
           width: `${clamped}%`,
-          height: 20,
-          backgroundColor: fillColor,
-          borderRadius: 10,
+          height: "100%",
+          borderRadius: 9999,
+          backgroundColor: colors.dark,
+        }}
+      />
+      {/* Fake gradient highlight overlay */}
+      <View
+        style={{
+          width: `${clamped}%`,
+          height: "100%",
+          borderRadius: 9999,
+          backgroundColor: colors.light,
+          opacity: 0.4,
+          position: "absolute",
         }}
       />
     </View>

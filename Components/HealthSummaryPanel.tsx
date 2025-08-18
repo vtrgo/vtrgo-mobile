@@ -1,10 +1,9 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { ShieldCheck, Cpu, AlertTriangle, PlayCircle, Info, Package } from 'lucide-react-native';
+import { ShieldCheck } from 'lucide-react-native';
 
 interface HealthSummaryPanelProps {
   historicalData: any;
-  onRequestField?: (field: string) => void;
   theme: any;
   styles: any;
   sumNestedValues: (obj: any) => number;
@@ -20,6 +19,16 @@ export default function HealthSummaryPanel({
 }: HealthSummaryPanelProps) {
   if (!historicalData.float_averages || !historicalData.boolean_percentages) return null;
 
+  const cycleTime = historicalData.float_averages.Performance?.CycleTime ?? 0;
+  const partsPerMinute = historicalData.float_averages.Performance?.PartsPerMinute ?? 0;
+  const totalParts = historicalData.float_averages.Performance?.SystemTotalParts ?? 0;
+
+  const autoMode = historicalData.boolean_percentages.SystemStatusBits?.AutoMode ?? 0;
+  const eStopOk = historicalData.boolean_percentages.SystemStatusBits?.EStopOk ?? 0;
+  const controlPowerOn = historicalData.boolean_percentages.SystemStatusBits?.ControlPowerOn ?? 0;
+  const systemFaulted = historicalData.boolean_percentages.SystemStatusBits?.SystemFaulted ?? 0;
+
+  // Sum total faults and warnings
   const faults = historicalData.fault_counts
     ? sumNestedValues(
         Object.entries(historicalData.fault_counts)
@@ -32,11 +41,7 @@ export default function HealthSummaryPanel({
     ? sumNestedValues(historicalData.fault_counts.WarningBits)
     : 0;
 
-  const partsPerMinute = historicalData.float_averages.Performance?.PartsPerMinute;
-  const totalParts = historicalData.float_averages.Performance?.SystemTotalParts;
-  const autoMode = historicalData.boolean_percentages.SystemStatusBits?.AutoMode;
-
-  // Helper to render fault counts recursively
+  // Recursive rendering for nested faults
   const renderFaultValue = (value: any): React.ReactNode => {
     if (value === null || value === undefined) return 'N/A';
     if (typeof value === 'object') {
@@ -49,152 +54,120 @@ export default function HealthSummaryPanel({
     return value.toString();
   };
 
-  // Render system status properly
   const renderSystemStatus = (statusObj: any) => {
-    const topLevelKey = 'SystemStatusBits';
-    const entriesToRender = statusObj[topLevelKey] || statusObj;
-
+    const entries = statusObj.SystemStatusBits || statusObj;
     return (
-      <View style={{ marginTop: 16 }}>
-        <Text style={styles.header}>System Status</Text>
-        {Object.entries(entriesToRender).map(([key, value]) => (
-        <View
-          key={key}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: 6,
-          }}
-        >
+      <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', marginLeft: 50 }}>
+        {Object.entries(entries).map(([key, value]) => (
           <View
+            key={key}
             style={{
-              width: 20,          // bigger circle
-              height: 20,
-              borderRadius: 10,   // perfectly round
-              backgroundColor: value ? 'green' : 'red',
-              marginRight: 8,     // spacing between circle and text
+              width: '100%',
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 8,
             }}
-          />
-          <Text style={styles.item}>
-            {key.split('.').pop()?.replace(/([A-Z])/g, ' $1').trim()}
-          </Text>
-        </View>
+          >
+            <View
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                backgroundColor: value ? 'green' : 'red',
+                marginRight: 8,
+              }}
+            />
+            <Text style={styles.item}>
+              {key.split('.').pop()?.replace(/([A-Z])/g, ' $1').trim()}
+            </Text>
+          </View>
         ))}
       </View>
     );
   };
 
+  const statusBars = [
+    { label: 'Automatic Mode', value: autoMode, variant: 'success' },
+    { label: 'E-Stop OK', value: eStopOk, variant: 'success' },
+    { label: 'Control Power On', value: controlPowerOn, variant: 'success' },
+    { label: 'System Faulted', value: systemFaulted, variant: 'danger' },
+  ];
+
   return (
     <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <ShieldCheck size={32} color={theme.header} strokeWidth={2} />
-        <Text style={styles.header}>
-          System Health Summary{'\n'}
-          <Text style={styles.item}>
-            A high-level overview of the system's health.
-          </Text>
+      {/* Header */}
+      <View style={{ marginBottom: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+          <ShieldCheck size={32} color={theme.header} strokeWidth={2} />
+          <Text style={[styles.header, { marginLeft: 8 }]}>System Health Summary</Text>
+        </View>
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: '400',
+            marginTop: 0,
+            color: theme.header,
+            textAlign: 'center',
+          }}
+        >
+          A high-level overview of the system's health.
         </Text>
       </View>
 
-      {/* Parts per minute */}
-      <View style={styles.healthSummaryRow}>
-        <View style={styles.leftGroup}>
-          <Cpu size={16} color={theme.header} strokeWidth={2} />
-          <Text style={[styles.item, { marginLeft: 6 }]}>Parts Per Minute:</Text>
+
+      {/* Metrics row with cards */}
+      <View style={{ flexDirection: 'row', marginBottom: 16 }}>
+        <View style={[styles.metricCard, { flex: 1, marginRight: 8 }]}>
+          <Text style={styles.metricLabel}>Cycle Time</Text>
+          <Text style={styles.metricValue}>{cycleTime.toFixed(1)}s</Text>
         </View>
-        <Text style={[styles.item, styles.bold]}>
-          {partsPerMinute != null ? partsPerMinute.toFixed(1) : 'N/A'}
-        </Text>
+
+        <View style={[styles.metricCard, { flex: 1, marginHorizontal: 4 }]}>
+          <Text style={styles.metricLabel}>Parts/Min</Text>
+          <Text style={styles.metricValue}>{partsPerMinute.toFixed(1)}</Text>
+        </View>
+
+        <View style={[styles.metricCard, { flex: 1, marginLeft: 8 }]}>
+          <Text style={styles.metricLabel}>Total Parts</Text>
+          <Text style={styles.metricValue}>{totalParts}</Text>
+        </View>
       </View>
 
-      {/* Total parts */}
-      <View style={styles.healthSummaryRow}>
-        <View style={styles.leftGroup}>
-          <Package size={16} color={theme.header} strokeWidth={2} />
-          <Text style={[styles.item, { marginLeft: 6 }]}>Total Parts:</Text>
-        </View>
-        <Text style={[styles.item, styles.bold]}>
-          {totalParts != null ? Math.round(totalParts).toLocaleString() : '0'}
-        </Text>
-      </View>
-
-      {/* Automatic mode */}
-      <View style={styles.healthSummaryRow}>
-        <View style={styles.leftGroup}>
-          <PlayCircle size={16} color={theme.header} strokeWidth={2} />
-          <Text style={[styles.item, { marginLeft: 6 }]}>Automatic Mode:</Text>
-        </View>
-        <Text style={[styles.item, styles.bold]}>
-          {autoMode != null ? autoMode.toFixed(1) + '%' : '0%'}
-        </Text>
-      </View>
-
-      {autoMode != null && (
-        <ProgressBar
-          value={autoMode}
-          variant={autoMode >= 75 ? 'success' : autoMode >= 50 ? 'warning' : 'danger'}
-        />
-      )}
-
-      {/* Faults */}
-      <View style={styles.healthSummaryRow}>
-        <View style={styles.leftGroup}>
-          <AlertTriangle size={16} color={theme.header} strokeWidth={2} />
-          <Text style={[styles.item, { marginLeft: 6 }]}>Faults:</Text>
-        </View>
-        <Text style={[styles.item, styles.bold]}>{faults}</Text>
-      </View>
-
-      {/* Warnings */}
-      <View style={styles.healthSummaryRow}>
-        <View style={styles.leftGroup}>
-          <Info size={16} color={theme.header} strokeWidth={2} />
-          <Text style={[styles.item, { marginLeft: 6 }]}>Warnings:</Text>
-        </View>
-        <Text style={[styles.item, styles.bold]}>{warnings}</Text>
-      </View>
-
-      {/* System Status */}
+      {/* System Status bits */}
       {historicalData.boolean_percentages?.SystemStatusBits &&
         renderSystemStatus(historicalData.boolean_percentages)}
 
-      {/* Fault count details */}
+      {/* Horizontal progress bars */}
+      <View style={{ marginTop: 16 }}>
+        <Text style={styles.subheader}>Status for the past 1 hour</Text>
+        {statusBars.map((status) => (
+          <View key={status.label} style={{ marginBottom: 12 }}>
+            <Text style={styles.item}>{status.label}</Text>
+            <ProgressBar value={status.value} variant={status.variant} />
+            <Text style={[styles.item, { marginTop: 4 }]}>{status.value.toFixed(1)}%</Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Fault counts */}
       {historicalData.fault_counts && (
-        <>
-          <Text style={[styles.header, { marginTop: 20 }]}>Fault Counts Details</Text>
-          {typeof historicalData.fault_counts === 'object' &&
-          Object.values(historicalData.fault_counts)[0] &&
-          typeof Object.values(historicalData.fault_counts)[0] === 'object' ? (
-            Object.entries(historicalData.fault_counts).map(([group, groupEntries]) => (
-              <View key={group} style={{ marginBottom: 12 }}>
-                <Text style={styles.subheader}>
-                  {group.replace(/([A-Z])/g, ' $1').trim()}
-                </Text>
-                {typeof groupEntries === 'object' ? (
-                  Object.entries(groupEntries).map(([key, value]) => (
-                    <View key={key} style={styles.itemRow}>
-                      <Text style={styles.item}>
-                        • {key.replace(/([A-Z])/g, ' $1').trim()}:{" "}
-                        <Text style={styles.bold}>{renderFaultValue(value)}</Text>
-                      </Text>
-                    </View>
-                  ))
-                ) : (
-                  <Text style={styles.item}>{groupEntries.toString()}</Text>
-                )}
-              </View>
-            ))
-          ) : (
-            Object.entries(historicalData.fault_counts).map(([key, value], idx) => (
-              <View key={key + idx} style={styles.itemRow}>
-                <Text style={styles.item}>
-                  • {key.replace(/([A-Z])/g, ' $1').trim()}:{" "}
-                  <Text style={styles.bold}>{value}</Text>
-                </Text>
-              </View>
-            ))
-          )}
-        </>
+        <View style={{ marginTop: 16 }}>
+          <Text style={styles.header}>Fault Counts Details</Text>
+          {Object.entries(historicalData.fault_counts).map(([group, groupEntries]) => (
+            <View key={group} style={{ marginBottom: 12 }}>
+              <Text style={styles.subheader}>{group.replace(/([A-Z])/g, ' $1').trim()}</Text>
+              {typeof groupEntries === 'object' ? (
+                Object.entries(groupEntries).map(([key, value]) => (
+                  <Text key={key} style={[styles.item, { marginLeft: 8 }]}>
+                    • {key.replace(/([A-Z])/g, ' $1').trim()}: {renderFaultValue(value)}
+                  </Text>
+                ))
+              ) : (
+                <Text style={[styles.item, { marginLeft: 8 }]}>{groupEntries}</Text>
+              )}
+            </View>
+          ))}
+        </View>
       )}
     </View>
   );
