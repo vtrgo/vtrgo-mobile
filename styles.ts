@@ -7,6 +7,7 @@ export const createStyles = (theme: {
   primary: string;
   danger: string;
   fadedText: string;
+  secondaryText: string,
   header: string;
   border: string;
   modal: string;
@@ -343,27 +344,39 @@ export const createStyles = (theme: {
       justifyContent: "center"
     },
     metricCard: {
-      backgroundColor: '#fff',
+      backgroundColor: theme.background,
       padding: 12,
       borderRadius: 12,
-      shadowColor: '#000',
+      shadowColor: theme.text, // or keep '#000' if you always want black shadows
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
       elevation: 3, // Android shadow
       alignItems: 'center',
     },
-
     metricLabel: {
       fontSize: 14,
-      color: '#555',
+      color: theme.secondaryText, // light = #0f0f0f, dark = #d6d3d3
       marginBottom: 4,
     },
-
     metricValue: {
       fontSize: 18,
       fontWeight: 'bold',
-      color: '#222',
+      color: theme.text, // light = black, dark = white
+    },
+
+
+    progressBarTrack: {
+      width: '100%',
+      height: 20,
+      borderRadius: 10,
+      overflow: 'hidden',
+      borderWidth: 1,
+      marginVertical: 10,
+    },
+    progressBarFill: {
+      height: '100%',
+      borderRadius: 10,
     },
 
   });

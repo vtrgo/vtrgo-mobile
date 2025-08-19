@@ -31,7 +31,7 @@ export const fakeNfcData = {
     "RobotStatusBits.VisionLight.Light1": 96.7742,
     "RobotStatusBits.VisionLight.Light2": 96.7742,
     "SystemStatusBits.AirPressureOk": 98.3607,
-    "SystemStatusBits.AutoMode": 46.7742,
+    "SystemStatusBits.AutoMode": 66.7742,
     "SystemStatusBits.ControlPowerOn": 96.7742,
     "SystemStatusBits.EStopOk": 100,
     "SystemStatusBits.GuardDoorOpen.GuardDoor1": 1.6129,
@@ -39,7 +39,7 @@ export const fakeNfcData = {
     "SystemStatusBits.GuardDoorOpen.GuardDoor3": 1.6129,
     "SystemStatusBits.GuardDoorOpen.GuardDoor4": 0,
     "SystemStatusBits.PurgeMode": 0,
-    "SystemStatusBits.SystemFaulted": 1.6393
+    "SystemStatusBits.SystemFaulted": 90.6393
   },
   "fault_counts": {
     "FaultBits.MainAirPressureNotOk": 1,

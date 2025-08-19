@@ -7,7 +7,7 @@ interface HealthSummaryPanelProps {
   theme: any;
   styles: any;
   sumNestedValues: (obj: any) => number;
-  ProgressBar: React.ComponentType<{ value: number; variant: string }>;
+  ProgressBar: React.ComponentType<{ value: number; reverse?: boolean }>;
 }
 
 export default function HealthSummaryPanel({
@@ -21,7 +21,7 @@ export default function HealthSummaryPanel({
 
   const cycleTime = historicalData.float_averages.Performance?.CycleTime ?? 0;
   const partsPerMinute = historicalData.float_averages.Performance?.PartsPerMinute ?? 0;
-  const totalParts = historicalData.float_averages.Performance?.SystemTotalParts ?? 0;
+  const totalParts = Math.floor(historicalData.float_averages.Performance?.SystemTotalParts ?? 0);
 
   const autoMode = historicalData.boolean_percentages.SystemStatusBits?.AutoMode ?? 0;
   const eStopOk = historicalData.boolean_percentages.SystemStatusBits?.EStopOk ?? 0;
@@ -86,11 +86,12 @@ export default function HealthSummaryPanel({
     );
   };
 
+  // Add reverse where a HIGH value means "bad"
   const statusBars = [
-    { label: 'Automatic Mode', value: autoMode, variant: 'success' },
-    { label: 'E-Stop OK', value: eStopOk, variant: 'success' },
-    { label: 'Control Power On', value: controlPowerOn, variant: 'success' },
-    { label: 'System Faulted', value: systemFaulted, variant: 'danger' },
+    { label: 'Automatic Mode', value: autoMode, reverse: false },
+    { label: 'E-Stop OK', value: eStopOk, reverse: false },
+    { label: 'Control Power On', value: controlPowerOn, reverse: false },
+    { label: 'System Faulted', value: systemFaulted, reverse: true }, // reversed logic
   ];
 
   return (
@@ -113,7 +114,6 @@ export default function HealthSummaryPanel({
           A high-level overview of the system's health.
         </Text>
       </View>
-
 
       {/* Metrics row with cards */}
       <View style={{ flexDirection: 'row', marginBottom: 16 }}>
@@ -143,7 +143,7 @@ export default function HealthSummaryPanel({
         {statusBars.map((status) => (
           <View key={status.label} style={{ marginBottom: 12 }}>
             <Text style={styles.item}>{status.label}</Text>
-            <ProgressBar value={status.value} variant={status.variant} />
+            <ProgressBar value={status.value} reverse={status.reverse} />
             <Text style={[styles.item, { marginTop: 4 }]}>{status.value.toFixed(1)}%</Text>
           </View>
         ))}
