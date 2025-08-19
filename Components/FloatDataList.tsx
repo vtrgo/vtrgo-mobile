@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { createStyles } from '../styles'; // adjust path to where your styles.ts is
 
 function getMs(item: any): number {
   const raw = item?.timestamp ?? item?.time;
@@ -17,7 +18,8 @@ function getMs(item: any): number {
   return NaN;
 }
 
-export default function FloatDataList({ data }) {
+export default function FloatDataList({ data, theme }) {
+  const styles = createStyles(theme);
   const [collapsed, setCollapsed] = useState(true);
 
   useEffect(() => {
@@ -66,26 +68,3 @@ export default function FloatDataList({ data }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  header: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  item: {
-    fontSize: 16,
-    marginVertical: 3,
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
-  noData: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    color: '#777',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-});

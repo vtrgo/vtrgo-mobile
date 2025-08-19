@@ -343,7 +343,7 @@ export const createStyles = (theme: {
       alignItems: "center", // keeps icon & text aligned vertically
       justifyContent: "center"
     },
-    metricCard: {
+    metricCard: { 
       backgroundColor: theme.background,
       padding: 12,
       borderRadius: 12,
@@ -375,6 +375,39 @@ export const createStyles = (theme: {
       marginVertical: 10,
     },
     progressBarFill: {
+      height: '100%',
+      borderRadius: 10,
+    },
+    noData: {
+      fontSize: 14,
+      fontStyle: 'italic',
+      color: '#777',
+      textAlign: 'center',
+      marginTop: 20,
+    },
+    track: {
+      width: '100%',
+      height: 20,
+      borderRadius: 10,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: '#999',
+      marginVertical: 10,
+    },
+    fill: {
+      height: '100%',
+      borderRadius: 10,
+    },
+    progressTrack: {
+      width: '100%',
+      height: 20,
+      borderRadius: 10,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: theme.border, // themed border
+      marginVertical: 10,
+    },
+    progressFill: {
       height: '100%',
       borderRadius: 10,
     },

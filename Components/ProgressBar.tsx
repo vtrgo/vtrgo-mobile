@@ -1,17 +1,18 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { createStyles } from '../styles'; // adjust import path
 
 interface ProgressBarProps {
   value: number; // 0–100
   reverse?: boolean; // if true, flips the good/bad color logic
+  theme: any; // pass theme into component
 }
 
-export function ProgressBar({ value = 0, reverse = false }: ProgressBarProps) {
-  const clamped = Math.min(Math.max(value, 0), 100);
+export function ProgressBar({ value = 0, reverse = false, theme }: ProgressBarProps) {
+  const styles = createStyles(theme);
 
-  let colors: string[];
-  let trackColor: string;
+  const clamped = Math.min(Math.max(value, 0), 100);
 
   const pickColors = (val: number) => {
     if (val < 50) {
@@ -36,33 +37,14 @@ export function ProgressBar({ value = 0, reverse = false }: ProgressBarProps) {
   const effectiveValue = reverse ? 100 - clamped : clamped;
   const picked = pickColors(effectiveValue);
 
-  colors = picked.colors;
-  trackColor = picked.track;
-
   return (
-    <View style={[styles.track, { backgroundColor: trackColor }]}>
+    <View style={[styles.progressTrack, { backgroundColor: picked.track }]}>
       <LinearGradient
-        colors={colors}
+        colors={picked.colors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        style={[styles.fill, { width: `${clamped}%` }]}
+        style={[styles.progressFill, { width: `${clamped}%` }]}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  track: {
-    width: '100%',
-    height: 20,
-    borderRadius: 10,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#999',
-    marginVertical: 10,
-  },
-  fill: {
-    height: '100%',
-    borderRadius: 10,
-  },
-});

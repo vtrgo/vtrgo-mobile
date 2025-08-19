@@ -143,7 +143,7 @@ export default function HealthSummaryPanel({
         {statusBars.map((status) => (
           <View key={status.label} style={{ marginBottom: 12 }}>
             <Text style={styles.item}>{status.label}</Text>
-            <ProgressBar value={status.value} reverse={status.reverse} />
+            <ProgressBar value={status.value} reverse={status.reverse} theme={theme} />
             <Text style={[styles.item, { marginTop: 4 }]}>{status.value.toFixed(1)}%</Text>
           </View>
         ))}
