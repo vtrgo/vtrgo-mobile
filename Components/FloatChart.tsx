@@ -29,11 +29,17 @@ export default function FloatChart({ formattedFloatData, graphTitle, font, ttval
           font,
           labelRotate: -45,
           labelPosition: 'inset',
-          formatXLabel: (label) =>
-            new Date(label).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-            }).replace(/\s/g, ' '),
+          formatXLabel: (label) => {
+            const d = new Date(label);
+            return d
+              .toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })
+              .replace(/\u202F/g, " ")   // fix narrow space
+              .replace(/\./g, "");       // strip the dots in a.m./p.m.
+          },
         }}
         yAxis={[
           {

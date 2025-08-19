@@ -108,7 +108,6 @@ export default function NfcScreen({ theme }) {
     return () => clearInterval(id);
   }, []);
 
-  console.log('🔹 Passing testMode to useNfc:', isTestMode);
   const { readNfc, scanFloatTab, writeNfcFloatRequest } = useNfc({
     onFloatScan: setFloatData,
     onLiveScan: setHistoricalData,
@@ -184,13 +183,10 @@ export default function NfcScreen({ theme }) {
         <TouchableOpacity
           style={styles.scanButton}
           onPress={() => {
-            console.log('🔹 Saving snapshot, historicalData:', historicalData);
 
             const projectName = historicalData?.project_meta?.['Project Name'];
-            console.log('🔹 Extracted projectName:', projectName);
 
             const snapshot = { floatData, historicalData, projectName };
-            console.log('🔹 Snapshot to save:', snapshot);
 
             saveToHistory(snapshot);
           }}

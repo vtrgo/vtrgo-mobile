@@ -77,7 +77,6 @@ export function useNfc({
       let jsonPayload: any;
 
       if (testMode) {
-        console.log('🔹 Using test NFC data');
         jsonPayload = fakeNfcData;
       } else {
         await NfcManager.requestTechnology(NfcTech.Ndef);
@@ -116,14 +115,7 @@ const scanFloatTab = useCallback(async () => {
     let jsonPayload: any;
 
     if (testMode) {
-      console.log('🔹 Using test NFC float data');
       jsonPayload = fakeNfcFloatData;
-
-      console.log('🔹 jsonPayload:', jsonPayload);
-      console.log('🔹 typeof jsonPayload.start:', typeof jsonPayload.start);
-      console.log('🔹 typeof jsonPayload.interval:', typeof jsonPayload.interval);
-      console.log('🔹 values length:', jsonPayload.values?.length);
-      console.log('🔹 first 5 values:', jsonPayload.values?.slice(0, 5));
     } else {
       await NfcManager.requestTechnology(NfcTech.Ndef);
       const tag = await NfcManager.getTag();
@@ -134,7 +126,6 @@ const scanFloatTab = useCallback(async () => {
 
       try {
         jsonPayload = JSON.parse(jsonString);
-        console.log('🔹 Live NFC jsonPayload:', jsonPayload);
       } catch (err) {
         console.error('❌ Failed to parse JSON:', err);
         Alert.alert('Data Error', 'Received incomplete or corrupted float data. Rescan NFC data.');
@@ -152,18 +143,19 @@ const scanFloatTab = useCallback(async () => {
 
     const startTime = new Date(jsonPayload.start).getTime();
     const intervalMs = jsonPayload.interval * 1000;
-    const expanded = jsonPayload.values.map((value, i) => ({
-      time: new Date(startTime + i * intervalMs).toISOString(),
-      value,
-    }));
 
-    console.log('🔹 expanded length:', expanded.length);
-    console.log('🔹 first 5 expanded:', expanded.slice(0, 5));
+    // Create expanded data with unique timestamps
+    const expanded = jsonPayload.values.map((value, i) => {
+      return {
+        value,
+        timestamp: startTime + i * intervalMs, // numeric timestamp
+      };
+    });
 
+
+    // Pass to chart
     onFloatScan(expanded);
-    setFormattedFloatData(
-      expanded.map(d => ({ ...d, timestamp: new Date(d.time).getTime() }))
-    );
+    setFormattedFloatData(expanded);
   } catch (e) {
     console.error('❌ scanFloatTab error:', e);
     handleNfcError(e);
@@ -172,6 +164,7 @@ const scanFloatTab = useCallback(async () => {
     cancelTech();
   }
 }, [onFloatScan, setFormattedFloatData, setPromptVisible, testMode]);
+
 
 
 
