@@ -7,7 +7,7 @@ interface HealthSummaryPanelProps {
   theme: any;
   styles: any;
   sumNestedValues: (obj: any) => number;
-  ProgressBar: React.ComponentType<{ value: number; reverse?: boolean; theme: any }>;
+  ProgressBar: React.ComponentType<{ value: number; reverse?: boolean }>;
 }
 
 export default function HealthSummaryPanel({
@@ -23,52 +23,22 @@ export default function HealthSummaryPanel({
   const partsPerMinute = historicalData.float_averages.Performance?.PartsPerMinute ?? 0;
   const totalParts = Math.floor(historicalData.float_averages.Performance?.SystemTotalParts ?? 0);
 
-  const bits = historicalData.system_status?.SystemStatusBits || {};
-  console.log('🟢 HealthSummaryPanel bits:', bits);
-  const autoMode = bits.AutoMode ? 1 : 0;
-  const eStopOk = bits.EStopOk ? 1 : 0;
-  const controlPowerOn = bits.ControlPowerOn ? 1 : 0;
-  const systemFaulted = bits.SystemFaulted ? 1 : 0;
-  const airPressureOk = bits.AirPressureOk ? 1 : 0;
-  const guardDoorOpen = bits.GuardDoorOpen
-  ? Object.values(bits.GuardDoorOpen).some((v) => v)
-  : false;
-  const purgeMode = bits.PurgeMode ? 1 : 0;
-
-  console.log('💻 Derived machine bits:', {
-    autoMode,
-    eStopOk,
-    controlPowerOn,
-    systemFaulted,
-    airPressureOk,
-    guardDoorOpen,
-    purgeMode, // ✅ now included
-  });
+  const autoMode = historicalData.boolean_percentages.SystemStatusBits?.AutoMode ?? 0;
+  const eStopOk = historicalData.boolean_percentages.SystemStatusBits?.EStopOk ?? 0;
+  const controlPowerOn = historicalData.boolean_percentages.SystemStatusBits?.ControlPowerOn ?? 0;
+  const systemFaulted = historicalData.boolean_percentages.SystemStatusBits?.SystemFaulted ?? 0;
 
 
-  // Derive machine state
-  let machineState = 'Unknown';
-  let machineColor = 'gray';
-
-  if (systemFaulted > 0) {
-    machineState = 'Faulted';
-    machineColor = 'red';
-  } else if (!eStopOk) {
-    machineState = 'E-Stop Pressed';
-    machineColor = 'red';
-  } else if (!airPressureOk) {
-    machineState = 'Air Pressure Low';
-    machineColor = 'orange';
-  } else if (guardDoorOpen) {
-    machineState = 'Guard Door Open';
-    machineColor = 'orange';
-  } else if (autoMode > 0 && controlPowerOn > 0) {
-    machineState = 'Running';
-    machineColor = 'green';
-  } else if (controlPowerOn > 0) {
-    machineState = 'Idle';
-    machineColor = 'yellow';
-  }
+    const bits = historicalData.system_status?.SystemStatusBits || {};
+    const autoModeCurrent = bits.AutoMode ? 1 : 0;
+    const eStopOkCurrent = bits.EStopOk ? 1 : 0;
+    const controlPowerOnCurrent = bits.ControlPowerOn ? 1 : 0;
+    const systemFaultedCurrent = bits.SystemFaulted ? 1 : 0;
+    const airPressureOk = bits.AirPressureOk ? 1 : 0;
+    const guardDoorOpen = bits.GuardDoorOpen
+      ? Object.values(bits.GuardDoorOpen).some((v) => v)
+      : false;
+    const purgeMode = bits.PurgeMode ? 1 : 0;
 
   // Sum total faults and warnings
   const faults = historicalData.fault_counts
@@ -83,6 +53,7 @@ export default function HealthSummaryPanel({
     ? sumNestedValues(historicalData.fault_counts.WarningBits)
     : 0;
 
+  // Recursive rendering for nested faults
   const renderFaultValue = (value: any): React.ReactNode => {
     if (value === null || value === undefined) return 'N/A';
     if (typeof value === 'object') {
@@ -95,74 +66,77 @@ export default function HealthSummaryPanel({
     return value.toString();
   };
 
-  const renderSystemStatus = (statusObj: any) => {
-    const entries = statusObj.SystemStatusBits || statusObj;
-    return (
-      <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', marginLeft: 50 }}>
-        {Object.entries(entries).map(([key, value]) => {
-          // handle nested GuardDoorOpen object
-          if (typeof value === 'object') {
-            return Object.entries(value).map(([subKey, subValue]) => (
-              <View
-                key={subKey}
-                style={{
-                  width: '100%',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginBottom: 8,
-                }}
-              >
-                <View
-                  style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: 10,
-                    backgroundColor: subValue ? 'green' : 'red', // ❗ invert for guard doors
-                    marginRight: 8,
-                  }}
-                />
-                <Text style={styles.item}>{subKey.replace(/([A-Z])/g, ' $1').trim()}</Text>
-              </View>
-            ));
-          }
+    // MACHINE STATE LOGIC
+    let machineState = 'Unknown';
+    let machineColor = 'gray';
 
-          // normal bits
-          const bgColor = value ? 'green' : 'red';
-          return (
+    if (systemFaulted > 0) {
+      machineState = 'Faulted';
+      machineColor = 'red';
+    } else if (!eStopOk) {
+      machineState = 'E-Stop Pressed';
+      machineColor = 'red';
+    } else if (!airPressureOk) {
+      machineState = 'Air Pressure Low';
+      machineColor = 'orange';
+    } else if (guardDoorOpen) {
+      machineState = 'Guard Door Open';
+      machineColor = 'orange';
+    } else if (autoMode > 0 && controlPowerOn > 0) {
+      machineState = 'Running';
+      machineColor = 'green';
+    } else if (controlPowerOn > 0) {
+      machineState = 'Idle';
+      machineColor = 'yellow';
+    }
+
+  // Render system status circles using computed "current" values
+  const renderSystemStatus = () => {
+    const statusList = [
+      { label: "Automatic Mode", value: autoModeCurrent },
+      { label: "E-Stop OK", value: eStopOkCurrent },
+      { label: "Control Power On", value: controlPowerOnCurrent },
+      { label: "Air Pressure OK", value: airPressureOk },
+      { label: "Guard Door Open", value: guardDoorOpen ? 1 : 0 },
+      { label: "Purge Mode", value: purgeMode },
+      { label: "System Faulted", value: systemFaultedCurrent },
+    ];
+
+    return (
+      <View style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", marginLeft: 50 }}>
+        {statusList.map((status) => (
+          <View
+            key={status.label}
+            style={{
+              width: "100%",
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 8,
+            }}
+          >
             <View
-              key={key}
               style={{
-                width: '100%',
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: 8,
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                backgroundColor: status.value ? "green" : "red",
+                marginRight: 8,
               }}
-            >
-              <View
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
-                  backgroundColor: bgColor,
-                  marginRight: 8,
-                }}
-              />
-              <Text style={styles.item}>
-                {key.split('.').pop()?.replace(/([A-Z])/g, ' $1').trim()}
-              </Text>
-            </View>
-          );
-        })}
+            />
+            <Text style={styles.item}>{status.label}</Text>
+          </View>
+        ))}
       </View>
     );
   };
 
 
+  // Add reverse where a HIGH value means "bad"
   const statusBars = [
     { label: 'Automatic Mode', value: autoMode, reverse: false },
     { label: 'E-Stop OK', value: eStopOk, reverse: false },
     { label: 'Control Power On', value: controlPowerOn, reverse: false },
-    { label: 'System Faulted', value: systemFaulted, reverse: true },
+    { label: 'System Faulted', value: systemFaulted, reverse: true }, // reversed logic
   ];
 
   return (
@@ -211,7 +185,7 @@ export default function HealthSummaryPanel({
       </View>
 
       {/* System Status bits */}
-      {historicalData.system_status &&
+      {historicalData.system_status?.SystemStatusBits &&
         renderSystemStatus(historicalData.system_status)}
 
 
