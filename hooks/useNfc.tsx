@@ -53,6 +53,9 @@ export function useNfc({
     if (groupedData.boolean_percentages) {
       groupedData.boolean_percentages = groupByPrefix(groupedData.boolean_percentages);
     }
+    if (groupedData.system_status) {
+      groupedData.system_status = groupByPrefix(groupedData.system_status);
+    }
     if (groupedData.fault_counts) {
       groupedData.fault_counts = groupByPrefix(groupedData.fault_counts);
     }
