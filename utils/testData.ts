@@ -43,7 +43,7 @@ export const fakeNfcData = {
     "RobotStatusBits.VisionLight.Light1": 11.956043956043956,
     "RobotStatusBits.VisionLight.Light2": 11.962642494162889,
     "SystemStatusBits.AirPressureOk": 21.34589947089947,
-    "SystemStatusBits.AutoMode": 9.589116394118454,
+    "SystemStatusBits.AutoMode": 69.589116394118454,
     "SystemStatusBits.ControlPowerOn": 21.328372605759956,
     "SystemStatusBits.EStopOk": 88.75422929724333,
     "SystemStatusBits.GuardDoorOpen.GuardDoor1": 23.949160990197708,

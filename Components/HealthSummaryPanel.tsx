@@ -70,10 +70,10 @@ export default function HealthSummaryPanel({
     let machineState = 'Unknown';
     let machineColor = 'gray';
 
-    if (systemFaulted > 0) {
+    if (systemFaultedCurrent > 0) {
       machineState = 'Faulted';
       machineColor = 'red';
-    } else if (!eStopOk) {
+    } else if (!eStopOkCurrent) {
       machineState = 'E-Stop Pressed';
       machineColor = 'red';
     } else if (!airPressureOk) {
@@ -82,10 +82,10 @@ export default function HealthSummaryPanel({
     } else if (guardDoorOpen) {
       machineState = 'Guard Door Open';
       machineColor = 'orange';
-    } else if (autoMode > 0 && controlPowerOn > 0) {
+    } else if (autoModeCurrent > 0 && controlPowerOn > 0) {
       machineState = 'Running';
       machineColor = 'green';
-    } else if (controlPowerOn > 0) {
+    } else if (controlPowerOnCurrent > 0) {
       machineState = 'Idle';
       machineColor = 'yellow';
     }
