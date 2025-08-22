@@ -1,4 +1,4 @@
-#React Native NFC Dashboard App
+# React Native NFC Dashboard App
 
 This project is a React Native app that reads NFC tags and displays binary data from an industrial PLC system in a user-friendly dashboard. It is built with the **React Native CLI** and runs on **physical Android or iOS devices**.
 
@@ -76,7 +76,7 @@ Install app:
 ```sh
 cd android
 Gradlew assembleRelease
-adb install -r app/build/outputs/apk/release/app-release.apk
+adb install -r app/build/outputs/apk/release/app-release.apk  # or yarn android
 
 ```
 
