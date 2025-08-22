@@ -17,6 +17,7 @@ import SettingsScreen from './SettingsScreen';
 import { useNfc } from '../hooks/useNfc';
 import { createStyles } from '../styles';
 import { useHistoryData } from '../context/HistoryContext';
+import { supabase } from '../lib/supabase';
 
 NfcManager.start();
 
@@ -54,6 +55,27 @@ export default function NfcScreen({ theme }) {
       setGraphTitle(currentData.projectName || '');
     }
   }, [currentData]);
+  const logToSupabase = async () => {
+    const projectName = historicalData?.project_meta?.['Project Name'];
+
+    const snapshot = {
+      timestamp: new Date().toISOString(),
+      projectName: projectName || 'Untitled Project',
+      floatData,
+      historicalData,
+    };
+
+    const { data, error } = await supabase.from('History').insert([snapshot]);
+
+    if (error) {
+      console.error('Supabase insert error:', error.message);
+      alert(`❌ ${error.message}`);
+    } else {
+      console.log('Inserted into Supabase:', data);
+      alert('✅ Data logged to Supabase!');
+    }
+  };
+
 
   
   useEffect(() => {
@@ -193,6 +215,13 @@ export default function NfcScreen({ theme }) {
         >
           <Text style={styles.scanButtonText}>💾 Save to History</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.scanButton}
+          onPress={logToSupabase}
+        >
+          <Text style={styles.scanButtonText}>☁️ Log to Supabase</Text>
+        </TouchableOpacity>
+
       </ScrollView>
 
       <FullscreenChartModal

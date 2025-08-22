@@ -8,6 +8,7 @@ import NfcScreen from './screens/NfcScreen';
 import HelpScreen from './screens/HelpScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import HistoryScreen from './screens/HistoryScreen';
+import LogScreen from './screens/LogScreen';
 import DrawerContent from './Components/DrawerContent';
 import { TestModeProvider } from './context/testModeContext';
 
@@ -37,6 +38,10 @@ export default function App() {
 
           <Drawer.Screen name="History" options={{ title: 'History' }}>
             {(props) => <HistoryScreen {...props} theme={theme} />}
+          </Drawer.Screen>
+
+          <Drawer.Screen name="Log" options={{ title: 'Log' }}>
+            {(props) => <LogScreen {...props} theme={theme} />}
           </Drawer.Screen>
 
           <Drawer.Screen name="Help" options={{ title: 'Help & Tutorial' }}>
